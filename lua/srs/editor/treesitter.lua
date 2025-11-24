@@ -1,11 +1,18 @@
-local geo = require("cockpit.geo")
+local geo = require("dreamy.geo")
 local Point = geo.Point
 local Range = geo.Range
 
+--- @class TSNode
+--- @field start fun(self: TSNode): number, number, number
+--- @field end_ fun(self: TSNode): number, number, number
+--- @field named fun(self: TSNode): boolean
+--- @field type fun(self: TSNode): string
+--- @field range fun(self: TSNode): number, number, number, number
+
 local M = {}
 
-local scope_query = "cockpit-scope"
-local imports_query = "cockpit-imports"
+local scope_query = "srs-scope"
+local imports_query = "srs-imports"
 
 local function tree_root()
     local buffer = vim.api.nvim_get_current_buf()
