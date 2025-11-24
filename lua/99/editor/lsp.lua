@@ -1,4 +1,4 @@
-local logger = require("srs.logger.logger")
+local logger = require("99.logger.logger")
 
 --- @class TextChangedIEvent
 --- @field buf number

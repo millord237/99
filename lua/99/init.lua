@@ -1,6 +1,7 @@
-local Logger = require("logger.logger")
-local editor = require("editor")
-local Point = require("geo").Point
+local Logger = require("99.logger.logger")
+local editor = require("99.editor")
+local geo = require("99.geo")
+local Point = geo.Point
 
 --- @class LoggerOptions
 --- @field level number?
@@ -20,16 +21,25 @@ function _99:new(opts)
 end
 
 function _99:fill_in_function()
-    print("fill_in_function")
-    local ts = editor.treesitter
-    local cursor = Point:from_cursor()
-    local scopes = ts.scopes(cursor)
-    print(vim.inspect(scopes))
+	print("fill_in_function")
+	local ts = editor.treesitter
+	local cursor = Point:from_cursor()
+	local scopes = ts.scopes(cursor)
+	local buffer = vim.api.nvim_get_current_buf()
+
+    if scopes == nil then
+        Logger:warn("no scope")
+        return
+    end
+
+	for _, range in ipairs(scopes.range) do
+		print("RANGE",range:to_text())
+	end
 end
 
 --- @param opts _99Options?
 local function init(opts)
-    opts = opts or {}
+	opts = opts or {}
 	local logger = opts.logger
 	if logger then
 		if logger.level then
@@ -42,7 +52,7 @@ local function init(opts)
 
 	local nn = _99:new(opts)
 
-    return nn
+	return nn
 end
 
 local nn = init()

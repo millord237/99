@@ -1,5 +1,5 @@
-local geo = require("dreamy.geo")
-local Point = geo.Point
+local geo = require("99.geo")
+local Logger = require("99.logger.logger")
 local Range = geo.Range
 
 --- @class TSNode
@@ -11,8 +11,9 @@ local Range = geo.Range
 
 local M = {}
 
-local scope_query = "srs-scope"
-local imports_query = "srs-imports"
+local scope_query = "99-scope"
+local function_container = "99-function-container"
+local imports_query = "99-imports"
 
 local function tree_root()
     local buffer = vim.api.nvim_get_current_buf()
@@ -71,6 +72,22 @@ function Scope:finalize()
     end)
 end
 
+--- @param cursor Point
+--- @return Scope | nil
+function M.containing_function(cursor)
+    local lang = vim.bo.ft
+    local root = tree_root()
+    if not root then
+        Logger:debug("LSP: could not find tree root")
+        return nil
+    end
+
+    local buffer = vim.api.nvim_get_current_buf()
+    local ok, query = pcall(vim.treesitter.query.get, lang, scope_query)
+
+    Logger:debug("LSP: query", "query", vim.inspect(query), "lang", lang, "scope_query", vim.inspect(scope_query))
+end
+
 --- if you want cursor just use Point:from_cursor()
 --- @param cursor Point
 --- @return Scope | nil
@@ -78,13 +95,14 @@ function M.scopes(cursor)
     local lang = vim.bo.ft
     local root = tree_root()
     if not root then
-        -- consider logging
+        Logger:debug("LSP: could not find tree root")
         return nil
     end
 
     local buffer = vim.api.nvim_get_current_buf()
     local ok, query = pcall(vim.treesitter.query.get, lang, scope_query)
 
+    Logger:debug("LSP: query", "query", vim.inspect(query), "lang", lang, "scope_query", vim.inspect(scope_query))
     if not ok or query == nil then
         return nil
     end

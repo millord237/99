@@ -1,4 +1,4 @@
-local levels = require("srs.logger.level")
+local levels = require("99.logger.level")
 
 --- @class LoggerConfig
 --- @field type? "file" | "print"

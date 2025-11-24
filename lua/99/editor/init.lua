@@ -1,4 +1,4 @@
 return {
-    treesitter = require("srs.editor.treesitter"),
-    lsp = require("srs.editor.lsp"),
+    treesitter = require("99.editor.treesitter"),
+    lsp = require("99.editor.lsp"),
 }
