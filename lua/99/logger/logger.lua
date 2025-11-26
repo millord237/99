@@ -99,6 +99,12 @@ function Logger:file_sink(path)
 	return self
 end
 
+--- @return Logger
+function Logger:print_sink()
+	self.sink = PrintSink:new()
+	return self
+end
+
 --- @param level number
 --- @return Logger
 function Logger:set_level(level)
