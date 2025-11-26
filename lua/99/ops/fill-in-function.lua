@@ -11,7 +11,7 @@ local function fill_in_function(_99)
 		md_files = _99.md_files,
 	})
 
-	if !request:has_scopes() then
+	if not request:has_scopes() then
 		Logger:warn("fill_in_function: unable to find any containing function")
 		error("you cannot call fill_in_function not in a function")
 	end

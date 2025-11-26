@@ -45,6 +45,7 @@ function Request.new(opts)
 	local scopes = ts.function_scopes(cursor)
 	local buffer = vim.api.nvim_get_current_buf()
 
+    print("request", vim.inspect(cursor), vim.inspect(scopes))
     return setmetatable({
         cursor = cursor,
         scopes = scopes,
@@ -58,7 +59,7 @@ function Request.new(opts)
 end
 
 function Request:has_scopes()
-    return self.scopes ~= nil and #self.scopes > 0
+    return self.scopes ~= nil and #self.scopes.range > 0
 end
 
 function Request:get_inner_scope()
@@ -107,8 +108,9 @@ function Request:_update_file_with_changes(res)
 end
 
 function Request:start()
-	Logger:debug("99#make_query", "id", self.id, "query", self.query)
-	vim.system({ "opencode", "run", "-m", "anthropic/claude-sonnet-4-5", self.query }, {
+    local query = self.system_prompt
+	Logger:debug("99#make_query", "id", self.id, "query", query)
+	vim.system({ "opencode", "run", "-m", "anthropic/claude-sonnet-4-5", query }, {
 		text = true,
 		stdout = vim.schedule_wrap(function(err, data)
 			Logger:debug("STDOUT#data", "id", self.id, "data", data)
