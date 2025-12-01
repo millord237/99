@@ -2,17 +2,18 @@
 local prompts = {
 	fill_in_function = "fill in the function.  dont change the function signature. do not edit anything outside of this function.  prioritize using internal functions for work that has already been done.  any NOTE's left in the function should be removed but instructions followed",
 	implement_function = "implement the function that the cursor is on.  make sure you inspect the current file carefully and any imports that look related.  being thorough is better than being fast.  being correct is better than being speedy.",
+	output_file = "never alter any file other than TEMP_FILE.",
+	read_tmp = "never attempt to read TEMP_FILE.  It is purely for output.  Previous contents, which may not exist, can be written over without worry",
 }
 
 --- @class _99.Prompts
 local prompt_settings = {
 	prompts = prompts,
 
-	--- @param output_file string
 	--- @param tmp_file string
 	--- @return string
-	tmp_file_location = function(output_file, tmp_file)
-		return string.format("<MustObey>\n%s\n%s\n</MustObey><TEMP_FILE>%s</TEMP_FILE>", output_file, tmp_file)
+	tmp_file_location = function(tmp_file)
+		return string.format("<MustObey>\n%s\n%s\n</MustObey>\n<TEMP_FILE>%s</TEMP_FILE>", prompts.output_file, prompts.read_tmp, tmp_file)
 	end,
 
 	---@param location _99.Location

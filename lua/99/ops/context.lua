@@ -13,9 +13,15 @@ end
 local Context = {}
 Context.__index = Context
 
-function Context.new()
+--- @param _99 _99.State
+function Context.new(_99)
+	local mds = {}
+	for _, md in ipairs(_99.md_files) do
+		table.insert(mds, md)
+	end
+
 	return setmetatable({
-		md_file_names = {},
+		md_file_names = mds,
 		ai_context = {},
 		tmp_file = random_file(),
 	}, Context)
@@ -28,11 +34,20 @@ function Context:add_md_file_name(md_file_name)
 	return self
 end
 
---- @param location _99.Location
-function Context:finalize(location)
+function Context:_read_md_files()
 	--- @ai use location's buffer's full path and walk back until we are at cwd
 	--- @ai and read each of the md_file_names.  if it exists then add it to
 	--- @ai ai_context.
+end
+
+--- @param _99 _99.State
+--- @param location _99.Location
+--- @return self
+function Context:finalize(_99, location)
+    table.insert(self.ai_context, _99.prompts.get_file_location(location))
+    table.insert(self.ai_context, _99.prompts.get_range_text(location.range))
+    table.insert(self.ai_context, _99.prompts.tmp_file_location(self.tmp_file))
+	return self
 end
 
 --- @param request _99.Request

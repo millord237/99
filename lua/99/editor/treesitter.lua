@@ -100,6 +100,11 @@ function Scope:has_scope()
 	return #self.range > 0
 end
 
+--- @return Range | nil
+function Scope:get_inner_scope()
+    return self.range[#self.range]
+end
+
 --- @param node TSNode
 function Scope:push(node)
 	local range = Range:from_ts_node(node, self.buffer)
@@ -120,25 +125,24 @@ end
 
 --- @param cursor Point
 --- @param buffer number?
---- @return Scope | nil
+--- @return Scope
 function M.function_scopes(cursor, buffer)
 	buffer = buffer or vim.api.nvim_get_current_buf()
+    local scope = Scope:new(cursor, buffer)
 
 	local lang = vim.bo[buffer].ft
 	local root = tree_root(buffer, lang)
 	if not root then
 		Logger:debug("LSP: could not find tree root")
-		return nil
+		return scope
 	end
 
 	local ok, query = pcall(vim.treesitter.query.get, lang, function_query)
 	if not ok or query == nil then
 		Logger:debug("LSP: not ok or query", "query", vim.inspect(query), "lang", lang, "ok", vim.inspect(ok))
-		return nil
+		return scope
 	end
 
-	print("function_scopes", buffer)
-	local scope = Scope:new(cursor, buffer)
 	for _, match, _ in query:iter_matches(root, buffer, 0, -1, { all = true }) do
 		for _, nodes in pairs(match) do
 			for _, node in ipairs(nodes) do
@@ -154,6 +158,7 @@ end
 
 --- @return TSNode[]
 function M.imports()
+    assert(false, "not implemented")
 	local root = tree_root()
 	if not root then
 		return {}
