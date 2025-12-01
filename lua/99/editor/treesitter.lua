@@ -13,11 +13,11 @@ local M = {}
 
 local function_query = "99-function"
 local imports_query = "99-imports"
+local identifier_query = "99-identifier"
 
 --- @param buffer number
 ---@param lang string
 local function tree_root(buffer, lang)
-
 	-- Load the parser and the query.
 	local ok, parser = pcall(vim.treesitter.get_parser, buffer, lang)
 	if not ok then
@@ -26,6 +26,53 @@ local function tree_root(buffer, lang)
 
 	local tree = parser:parse()[1]
 	return tree:root()
+end
+
+--- @param buffer number
+--- @param cursor Point
+--- @return TSNode | nil
+function M.identifier(buffer, cursor)
+	local lang = vim.bo[buffer].ft
+	local root = tree_root(buffer, lang)
+	if not root then
+		Logger:error("unable to find treeroot, this should never happen", "buffer", buffer, "lang", lang)
+		return nil
+	end
+
+	local ok, query = pcall(vim.treesitter.query.get, lang, identifier_query)
+	if not ok or query == nil then
+		Logger:error(
+			"unable to get the identifier_query",
+			"lang",
+			lang,
+			"buffer",
+			buffer,
+			"ok",
+			type(ok),
+			"query",
+			type(query)
+		)
+		return nil
+	end
+
+	--- likely something that needs to be done with treesitter#get_node
+	local found = nil
+	for _, match, _ in query:iter_matches(root, buffer, 0, -1, { all = true }) do
+		for _, nodes in pairs(match) do
+			for _, node in ipairs(nodes) do
+				local range = Range:from_ts_node(node, buffer)
+				if range:contains(cursor) then
+					found = node
+					goto end_of_loops
+				end
+			end
+		end
+	end
+	::end_of_loops::
+
+    Logger:debug("treesitter#identifier", "found", found)
+
+	return found
 end
 
 --- @class Scope
@@ -75,7 +122,7 @@ end
 --- @param buffer number?
 --- @return Scope | nil
 function M.function_scopes(cursor, buffer)
-    buffer = buffer or vim.api.nvim_get_current_buf()
+	buffer = buffer or vim.api.nvim_get_current_buf()
 
 	local lang = vim.bo[buffer].ft
 	local root = tree_root(buffer, lang)
@@ -90,7 +137,7 @@ function M.function_scopes(cursor, buffer)
 		return nil
 	end
 
-    print("function_scopes", buffer)
+	print("function_scopes", buffer)
 	local scope = Scope:new(cursor, buffer)
 	for _, match, _ in query:iter_matches(root, buffer, 0, -1, { all = true }) do
 		for _, nodes in pairs(match) do

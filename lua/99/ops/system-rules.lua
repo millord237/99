@@ -1,5 +1,4 @@
 local _99_settings = {
-	output_file = "you must NEVER alter the file given.  You must provide the desired change to TEMP_FILE. Do NOT inspec the TEMP_FILE.  It is for you to write into, never read.  TEMP_FILE previous contents do not matter.",
 	fill_in_function = "fill in the function.  dont change the function signature. do not edit anything outside of this function.  prioritize using internal functions for work that has already been done.  any NOTE's left in the function should be removed but instructions followed",
 }
 
@@ -9,7 +8,6 @@ local function system_rules(tmp_file)
 	return string.format(
 		"<MustObey>\n%s\n%s\n</MustObey><TEMP_FILE>%s</TEMP_FILE>",
 		_99_settings.output_file,
-		_99_settings.fill_in_function,
 		tmp_file
 	)
 end

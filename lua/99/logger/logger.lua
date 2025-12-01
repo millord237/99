@@ -80,6 +80,7 @@ end
 --- @class Logger
 --- @field level number
 --- @field sink LoggerSink
+--- @field print_on_error boolean
 local Logger = {}
 Logger.__index = Logger
 
@@ -89,6 +90,7 @@ function Logger:new(level)
 	return setmetatable({
 		sink = PrintSink:new(),
 		level = level,
+        print_on_error = false,
 	}, self)
 end
 
@@ -112,6 +114,38 @@ function Logger:set_level(level)
 	return self
 end
 
+--- @return Logger
+function Logger:on_error_print_message()
+    self.print_on_error = true
+    return self
+end
+
+--- @class _99.Logger.Options
+--- @field level number?
+--- @field path string?
+--- @field print_on_error? boolean
+
+--- @param opts _99.Logger.Options?
+function Logger:configure(opts)
+    if not opts then
+        return
+    end
+
+    if opts.level then
+        Logger:set_level(opts.level)
+    end
+
+    if opts.path then
+        Logger:file_sink(opts.path)
+    else
+        Logger:print_sink()
+    end
+
+    if opts.print_on_error then
+        Logger:on_error_print_message()
+    end
+end
+
 function Logger:_log(level, msg, ...)
 	if self.level > level then
 		return
@@ -119,6 +153,9 @@ function Logger:_log(level, msg, ...)
 
 	local args = stringifyArgs(...)
 	local line = string.format("[%s]: %s %s", levels.levelToString(level), msg, args)
+    if self.print_on_error and level == levels.ERROR then
+        print(line)
+    end
 	self.sink:write_line(line)
 end
 
@@ -150,7 +187,7 @@ end
 --- @param ... any
 function Logger:fatal(msg, ...)
 	self:_log(levels.FATAL, msg, ...)
-	assert(false, "fatal msg recieved")
+	assert(false, "fatal msg recieved: " .. msg)
 end
 
 local module_logger = Logger:new(levels.DEBUG)
