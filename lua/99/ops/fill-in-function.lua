@@ -62,8 +62,6 @@ local function fill_in_function(_99)
 
 	local location = editor.Location.from_ts_node(scope, range)
 	local ai_input_row = Languages.add_function_spacing(_99, location)
-
-    print("ai_stdout_rows", vim.inspect(ai_input_row))
 	if ai_input_row == -1 then
 		Logger:warn("fill_in_function: add_function_spacing returned -1")
 	else
