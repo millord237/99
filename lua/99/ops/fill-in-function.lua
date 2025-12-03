@@ -1,9 +1,12 @@
-local Point = require("99.geo").Point
+local geo = require("99.geo")
+local Range = geo.Range
+local Point = geo.Point
 local Logger = require("99.logger.logger")
 local Request = require("99.request")
 local marks = require("99.ops.marks")
 local Context = require("99.ops.context")
 local editor = require("99.editor")
+local Languages = require("99.language")
 
 --- @param res string
 --- @param location _99.Location
@@ -17,7 +20,6 @@ local function update_file_with_changes(res, location)
 
 	local ts = editor.treesitter
 	local scopes = ts.function_scopes(mark_point, buffer)
-	print("update_file_with_changes buffer", buffer)
 
 	if not scopes or not scopes:has_scope() then
 		Logger:error("update_file_with_changes: unable to find function at mark location")
@@ -36,27 +38,12 @@ end
 
 --- @param _99 _99.State
 --- @param location _99.Location
-local function add_space_in_function(_99, location)
-    if _99.ai_stdout_rows == 0 then
-        return
-    end
-
-    local buffer = location.buffer
-    local range = location.range
-    local function_end_row, _ = range.end_:to_vim()
-
-    local empty_lines = {}
-    for i = 1, _99.ai_stdout_rows do
-        empty_lines[i] = ""
-    end
-
-    vim.api.nvim_buf_set_lines(buffer, function_end_row, function_end_row, false, empty_lines)
-
-    location.marks.ai_stdout_start = marks(buffer, range)
-end
-
-local function print_hello_world()
-	print("Hello, World!")
+---@param thoughts string[]
+local function update_with_cot(_99, location, thoughts)
+	local lines = _99.ai_stdout_rows
+	--- use nvim_buf_set_extmark({buffer}, {ns_id}, {line}, {col}, {opts})
+	--- only show the last few thoughts lines
+	--- i want to display virtual text of the latest thoughts
 end
 
 --- @param _99 _99.State
@@ -74,11 +61,21 @@ local function fill_in_function(_99)
 	end
 
 	local location = editor.Location.from_ts_node(scope, range)
+	local ai_input_row = Languages.add_function_spacing(_99, location)
+
+    print("ai_stdout_rows", vim.inspect(ai_input_row))
+	if ai_input_row == -1 then
+		Logger:warn("fill_in_function: add_function_spacing returned -1")
+	else
+		local buffer = location.buffer
+		local mark = marks(buffer, Range:new(buffer, Point:new(ai_input_row, 1), Point:new(ai_input_row, 1)))
+	end
+
+	-- location.marks.virtual_text_start = marks(buffer,
 	local context = Context.new(_99):finalize(_99, location)
 	local request = Request.new({
 		model = _99.model,
-        on_stdout = function(line)
-        end,
+		on_stdout = function(line) end,
 		on_complete = function(_, ok, response)
 			if not ok then
 				Logger:fatal("unable to fill in function, enable and check logger for more details")
@@ -91,8 +88,6 @@ local function fill_in_function(_99)
 	context:add_to_request(request)
 	location.marks.function_location = marks(location.buffer, range)
 	request:add_prompt_content(_99.prompts.prompts.fill_in_function)
-
-    add_space_in_function(_99, location)
 
 	return request
 end

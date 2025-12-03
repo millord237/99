@@ -51,6 +51,8 @@ end
 --- @param col number
 --- @return Point
 function Point:new(row, col)
+    assert(type(row) == "number", "expected row to be a number")
+    assert(type(col) == "number", "expected col to be a number")
     return setmetatable({
         row = row,
         col = col,
@@ -207,6 +209,12 @@ end
 --- @return boolean
 function Range:contains_range(range)
     return self.start:lte(range.start) and self.end_:gte(range.end_)
+end
+
+function Range:area()
+    local start = project(self.start)
+    local end_ = project(self.end_)
+    return end_ - start
 end
 
 function Range:to_string()

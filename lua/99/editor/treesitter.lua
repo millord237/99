@@ -148,12 +148,15 @@ function M.function_scopes(cursor, buffer)
 		return scope
 	end
 
-	for _, match, _ in query:iter_matches(root, buffer, 0, -1, { all = true }) do
-		for _, nodes in pairs(match) do
-			for _, node in ipairs(nodes) do
-				scope:push(node)
-			end
-		end
+	for id, node, _ in query:iter_captures(root, buffer, 0, -1, { all = true }) do
+        local name = query.captures[id]
+        print("cursor query captures", "id", id, "name", name)
+        if name == "context.scope" then
+            scope:push(node)
+        elseif name == "context.body" then
+            -- scope:push(node)
+        end
+
 	end
 
 	scope:finalize()

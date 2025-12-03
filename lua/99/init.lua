@@ -1,6 +1,7 @@
 local Logger = require("99.logger.logger")
 local Level = require("99.logger.level")
 local ops = require("99.ops")
+local Languages = require("99.language")
 
 --- @class _99.Options
 --- @field logger _99.Logger.Options?
@@ -14,6 +15,7 @@ local ops = require("99.ops")
 --- @field md_files string[]
 --- @field prompts _99.Prompts
 --- @field ai_stdout_rows number
+--- @field languages string[]
 
 --- @type _99.State
 local _99_state = {
@@ -21,6 +23,7 @@ local _99_state = {
 	md_files = {},
     prompts = require("99.prompt_settings"),
     ai_stdout_rows = 3,
+    languages = {"lua"}
 }
 
 --- @class _99
@@ -60,6 +63,8 @@ function _99.setup(opts)
             _99.add_md_file(md)
         end
     end
+
+    Languages.initialize(_99_state)
 end
 
 --- @param md string
