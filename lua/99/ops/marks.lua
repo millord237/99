@@ -14,7 +14,53 @@ local Mark = {}
 Mark.__index = Mark
 
 --- @param buffer number
+--- @param range _99.Range
+--- @return _99.Mark
+function Mark.mark_above_range(buffer, range)
+    local start = range.start
+    local line, _ = start:to_vim()
+    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, line - 1, 0, {})
+
+    return setmetatable({
+        id = id,
+        buffer = buffer,
+        nsid = nsid,
+    }, Mark)
+end
+
+--- @param buffer number
 --- @param func _99.treesitter.Function
+--- @return _99.Mark
+function Mark.mark_above_func(buffer, func)
+    local start = func.function_range.start
+    local line, col = start:to_vim()
+    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, line - 1, col, {})
+
+    return setmetatable({
+        id = id,
+        buffer = buffer,
+        nsid = nsid,
+    }, Mark)
+end
+
+---@param buffer number
+---@param range _99.Range
+---@return _99.Mark
+function Mark.mark_end_of_range(buffer, range)
+    local end_ = range.end_
+    local line, col = end_:to_vim()
+    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, line, col + 1, {})
+
+    return setmetatable({
+        id = id,
+        buffer = buffer,
+        nsid = nsid,
+    }, Mark)
+end
+
+--- @param buffer number
+--- @param func _99.treesitter.Function
+--- @return _99.Mark
 function Mark.mark_func_body(buffer, func)
     local start = func.function_range.start
     local line, col = start:to_vim()

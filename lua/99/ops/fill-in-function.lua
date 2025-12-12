@@ -80,6 +80,7 @@ local function fill_in_function(_99)
     local request_status = RequestStatus.new(
         250,
         _99.ai_stdout_rows,
+        "Loading",
         location.marks.function_location
     )
     request_status:start()

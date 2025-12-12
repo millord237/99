@@ -16,7 +16,7 @@ local function validate_opts(opts)
     assert(opts.provider, "you must provide a model provider")
 end
 
---- @alias _99.Request.State "ready" | "calling-model" | "parsing-result" | "updating-file"
+--- @alias _99.Request.State "ready" | "calling-model" | "parsing-result" | "updating-file" | "cancelled"
 
 --- @class _99.ProviderObserver
 --- @field on_stdout fun(line: string): nil
@@ -135,6 +135,10 @@ function Request.new(opts)
         state = "ready",
         _content = {},
     }, Request)
+end
+
+function Request:cancel()
+    self.state = "cancelled"
 end
 
 --- @param content string

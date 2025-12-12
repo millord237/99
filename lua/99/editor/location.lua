@@ -1,7 +1,7 @@
 --- @class _99.Location
 --- @field full_path string
 --- @field range _99.Range
---- @field node _99.treesitter.Node
+--- @field node _99.treesitter.TSNode
 --- @field buffer number
 --- @field file_type string
 --- @field marks table<string, _99.Mark>
@@ -9,7 +9,7 @@
 local Location = {}
 Location.__index = Location
 
---- @param node _99.treesitter.Node
+--- @param node _99.treesitter.TSNode
 --- @param range _99.Range
 function Location.from_ts_node(node, range)
     local full_path = vim.api.nvim_buf_get_name(range.buffer)
