@@ -63,8 +63,7 @@ local function fill_in_function(_99)
         editor.Location.from_ts_node(func.function_node, func.function_range)
     local virt_line_count = _99.ai_stdout_rows
     if virt_line_count >= 0 then
-        location.marks.function_location =
-            Mark.mark_func_body(buffer, func)
+        location.marks.function_location = Mark.mark_func_body(buffer, func)
     end
 
     local context = Context.new(_99):finalize(_99, location)
@@ -85,12 +84,21 @@ local function fill_in_function(_99)
     )
     request_status:start()
 
+    _99:add_active_request(function()
+        location:clear_marks()
+        request:cancel()
+        request_status:stop()
+    end)
+
     request:start({
         on_stdout = function(line)
             request_status:push(line)
         end,
         on_complete = function(ok, response)
             request_status:stop()
+            if request:is_cancelled() then
+                return
+            end
             if not ok then
                 Logger:fatal(
                     "unable to fill in function, enable and check logger for more details"

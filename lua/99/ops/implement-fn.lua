@@ -9,11 +9,24 @@ local Point = geo.Point
 local Mark = require("99.ops.marks")
 local RequestStatus = require("99.ops.request_status")
 
-local function update_code(request, ok, res)
-    if not ok then
-        error("unable to implement function.  check logger for more details")
+--- @param response string
+---@param location _99.Location
+local function update_code(response, location)
+    local buffer = location.buffer
+    local code_mark = location.marks.code_placement
+    local pos =
+        vim.api.nvim_buf_get_extmark_by_id(buffer, code_mark.nsid, code_mark.id, {})
+    local row = pos[1]
+    local line = vim.api.nvim_buf_get_lines(buffer, row, row + 1, false)[1]
+    local col = #line
+
+    local lines = vim.split(response, "\n")
+    if #line > 0 then
+        table.insert(lines, 1, "")
     end
-    Logger:fatal("not implemented yet")
+    vim.api.nvim_buf_set_text(buffer, row, col, row, col, lines)
+
+    location:clear_marks()
 end
 
 --- @param _99 _99.State
@@ -37,6 +50,7 @@ local function implement_fn(_99)
         on_complete = update_code,
         model = _99.model,
         context = context,
+        provider = _99.provider_override,
     })
 
     location.marks.end_of_fn_call = Mark.mark_end_of_range(buffer, range)
@@ -62,22 +76,33 @@ local function implement_fn(_99)
 
     code_placement:start()
     at_call_site:start()
+    _99:add_active_request(function()
+        location:clear_marks()
+        request:cancel()
+        code_placement:stop()
+        at_call_site:stop()
+    end)
 
     request:add_prompt_content(_99.prompts.prompts.implement_function)
     request:start({
         on_stdout = function(line)
-            request_status:push(line)
+            code_placement:push(line)
         end,
         on_complete = function(ok, response)
-            request_status:stop()
+            code_placement:stop()
+            at_call_site:stop()
             if not ok then
                 Logger:fatal(
-                    "unable to fill in function, enable and check logger for more details"
+                    "unable to fll in function, enable and check logger for more details"
                 )
             end
-            update_file_with_changes(response, location)
+            update_code(response, location)
         end,
-        on_stderr = function(line) end,
+        on_stderr = function(line)
+            --- TODO: If there is an error here, what should we do ?
+            --- i dont think we should display it, hence the reason
+            --- why i havent done anything yet.
+        end,
     })
 
     return request

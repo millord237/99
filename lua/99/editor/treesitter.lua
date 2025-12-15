@@ -87,9 +87,9 @@ end
 
 --- @class _99.treesitter.Function
 --- @field function_range _99.Range
---- @field function_node _99.treesitter.Node
+--- @field function_node _99.treesitter.TSNode
 --- @field body_range _99.Range
---- @field body_node _99.treesitter.Node
+--- @field body_node _99.treesitter.TSNode
 local Function = {}
 Function.__index = Function
 
@@ -206,18 +206,28 @@ function M.containing_function(buffer, cursor)
     return Function.from_ts_node(found_node, lang, buffer, cursor)
 end
 
+--- @param buffer number
 --- @return _99.treesitter.Node[]
-function M.imports()
-    assert(false, "not implemented")
-    local root = tree_root()
+function M.imports(buffer)
+    local lang = vim.bo[buffer].ft
+    local root = tree_root(buffer, lang)
     if not root then
+        Logger:debug("imports: could not find tree root")
         return {}
     end
 
-    local buffer = vim.api.nvim_get_current_buf()
-    local ok, query = pcall(vim.treesitter.query.get, vim.bo.ft, imports_query)
+    local ok, query = pcall(vim.treesitter.query.get, lang, imports_query)
 
     if not ok or query == nil then
+        Logger:debug(
+            "imports: not ok or query",
+            "query",
+            vim.inspect(query),
+            "lang",
+            lang,
+            "ok",
+            vim.inspect(ok)
+        )
         return {}
     end
 

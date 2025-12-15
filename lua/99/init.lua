@@ -3,6 +3,8 @@ local Level = require("99.logger.level")
 local ops = require("99.ops")
 local Languages = require("99.language")
 
+--- @alias _99.Cleanup fun(): nil
+
 --- @class _99.StateProps
 --- @field model string
 --- @field md_files string[]
@@ -54,8 +56,18 @@ function _99_State:add_active_request(clean_up)
     table.insert(self.__active_requests, clean_up)
 end
 
-function _99_State:clear_active_requests()
-    self.__active_requests = {}
+--- @param context _99.Context
+---@param on_complete fun(ok: boolean, res: string): nil
+---@return _99.Request
+function _99_State:request(context, on_complete)
+    local Request = require("99.request")
+    local request = Request.new({
+        model = self.model,
+        context = context,
+        provider = self.provider_override,
+        on_complete = on_complete,
+    })
+    return request
 end
 
 local _99_state = _99_State.new()
@@ -70,6 +82,7 @@ local _99 = {
 }
 
 function _99.implement_fn()
+    print("implement_fn#_99_state provider", vim.inspect(_99_state.provider_override))
     ops.implement_fn(_99_state)
 end
 
@@ -81,6 +94,7 @@ function _99.stop_all_requests()
     for _, clean_up in ipairs(_99_state.__active_requests) do
         clean_up()
     end
+    _99_state.__active_requests = {}
 end
 
 --- As a warning do not use this function unless you intend to use it for

@@ -6,15 +6,16 @@ function M.next_frame()
         next = true
     end)
 
-    vim.wait(1000, function() return next end)
+    vim.wait(1000, function()
+        return next
+    end)
 end
-
 
 M.created_files = {}
 
 --- @class _99.test.ProviderRequest
 --- @field query string
---- @field context _99.Context
+--- @field request _99.Request
 --- @field observer _99.ProviderObserver?
 
 --- @class _99.test.Provider : _99.Provider
@@ -27,12 +28,12 @@ function TestProvider.new()
 end
 
 --- @param query string
----@param context _99.Context
+---@param request _99.Request
 ---@param observer _99.ProviderObserver?
-function TestProvider:make_request(query, context, observer)
+function TestProvider:make_request(query, request, observer)
     self.request = {
         query = query,
-        context = context,
+        request = request,
         observer = observer,
     }
 end

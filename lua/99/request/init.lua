@@ -24,7 +24,7 @@ end
 --- @field on_complete fun(success: boolean, res: string): nil
 
 --- @class _99.Provider
---- @field make_request fun(self: _99.Provider, query: string, context: _99.Context, observer: _99.ProviderObserver)
+--- @field make_request fun(self: _99.Provider, query: string, request: _99.Request, observer: _99.ProviderObserver)
 
 local DevNullObserver = {
     name = "DevNullObserver",
@@ -36,9 +36,9 @@ local DevNullObserver = {
 local OpenCodeProvider = {}
 
 --- @param query string
----@param context _99.Context
+---@param request _99.Request
 ---@param observer _99.ProviderObserver?
-function OpenCodeProvider:make_request(query, context, observer)
+function OpenCodeProvider:make_request(query, request, observer)
     observer = observer or DevNullObserver
     local id = get_id()
     Logger:debug("99#make_query", "id", id, "query", query)
@@ -47,7 +47,10 @@ function OpenCodeProvider:make_request(query, context, observer)
         {
             text = true,
             stdout = vim.schedule_wrap(function(err, data)
-                Logger:debug("STDOUT#data", "id", id, "data", data)
+                Logger:debug("STDOUT#data", "id", id, "data", data, "cancelled", request:is_cancelled() and "yes" or "no")
+                if request:is_cancelled() then
+                    return
+                end
                 if err and err ~= "" then
                     Logger:debug("STDOUT#error", "id", id, "err", err)
                 end
@@ -56,7 +59,10 @@ function OpenCodeProvider:make_request(query, context, observer)
                 end
             end),
             stderr = vim.schedule_wrap(function(err, data)
-                Logger:debug("STDERR#data", "id", id, "data", data)
+                Logger:debug("STDERR#data", "id", id, "data", data, "cancelled", request:is_cancelled() and "yes" or "no")
+                if request:is_cancelled() then
+                    return
+                end
                 if err and err ~= "" then
                     Logger:debug("STDERR#error", "id", id, "err", err)
                 end
@@ -66,6 +72,10 @@ function OpenCodeProvider:make_request(query, context, observer)
             end),
         },
         function(obj)
+            if request:is_cancelled() then
+                Logger:debug("on_complete: request has been cancelled", "id", id)
+                return
+            end
             if obj.code ~= 0 then
                 Logger:fatal(
                     "opencode make_query failed",
@@ -77,16 +87,16 @@ function OpenCodeProvider:make_request(query, context, observer)
                 return
             end
             vim.schedule(function()
-                local ok, res = OpenCodeProvider._retrieve_response(context)
+                local ok, res = OpenCodeProvider._retrieve_response(request)
                 observer.on_complete(ok, res)
             end)
         end
     )
 end
 
---- @param context _99.Context
-function OpenCodeProvider._retrieve_response(context)
-    local tmp = context.tmp_file
+--- @param request _99.Request
+function OpenCodeProvider._retrieve_response(request)
+    local tmp = request.config.context.tmp_file
     local success, result = pcall(function()
         return vim.fn.readfile(tmp)
     end)
@@ -141,6 +151,10 @@ function Request:cancel()
     self.state = "cancelled"
 end
 
+function Request:is_cancelled()
+    return self.state == "cancelled"
+end
+
 --- @param content string
 --- @return self
 function Request:add_prompt_content(content)
@@ -152,7 +166,8 @@ end
 function Request:start(observer)
     local query = table.concat(self._content, "\n")
     observer = observer or DevNullObserver
-    self.config.provider:make_request(query, self.config.context, observer)
+    print("request:start", vim.inspect(self.config.provider))
+    self.config.provider:make_request(query, self, observer)
 end
 
 return Request

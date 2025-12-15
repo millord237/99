@@ -1,4 +1,5 @@
-local braille_chars = {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+local braille_chars =
+    { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
 
 --- @class _99.StatusLine
 --- @field index number
@@ -21,7 +22,9 @@ end
 
 --- @return string
 function StatusLine:to_string()
-    return braille_chars[self.index % #braille_chars + 1] .. " " .. self.title_line
+    return braille_chars[self.index % #braille_chars + 1]
+        .. " "
+        .. self.title_line
 end
 
 --- @class _99.RequestStatus

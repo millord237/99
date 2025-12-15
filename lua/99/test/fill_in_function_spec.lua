@@ -47,4 +47,26 @@ describe("fill_in_function", function()
             eq(expected_state, r(buffer))
         end)
     end
+
+    it("should cancel request when stop_all_requests is called", function()
+        local p, buffer = setup(test_content.empty_function_single_line)
+        _99.fill_in_function()
+
+        eq(test_content.empty_function_single_line, r(buffer))
+
+        assert.is_false(p.request.request:is_cancelled())
+
+        assert.is_not_nil(p.request)
+        assert.is_not_nil(p.request.request)
+
+        _99.stop_all_requests()
+        test_utils.next_frame()
+
+        assert.is_true(p.request.request:is_cancelled())
+
+        p:resolve(true, "function foo()\n    return 42\nend")
+        test_utils.next_frame()
+
+        eq(test_content.empty_function_single_line, r(buffer))
+    end)
 end)
