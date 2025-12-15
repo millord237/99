@@ -47,7 +47,7 @@ function OpenCodeProvider:make_request(query, request, observer)
         {
             text = true,
             stdout = vim.schedule_wrap(function(err, data)
-                Logger:debug("STDOUT#data", "id", id, "data", data, "cancelled", request:is_cancelled() and "yes" or "no")
+                Logger:debug("STDOUT#data", "id", id, "data", data)
                 if request:is_cancelled() then
                     return
                 end
@@ -59,7 +59,7 @@ function OpenCodeProvider:make_request(query, request, observer)
                 end
             end),
             stderr = vim.schedule_wrap(function(err, data)
-                Logger:debug("STDERR#data", "id", id, "data", data, "cancelled", request:is_cancelled() and "yes" or "no")
+                Logger:debug("STDERR#data", "id", id, "data", data)
                 if request:is_cancelled() then
                     return
                 end
@@ -166,7 +166,6 @@ end
 function Request:start(observer)
     local query = table.concat(self._content, "\n")
     observer = observer or DevNullObserver
-    print("request:start", vim.inspect(self.config.provider))
     self.config.provider:make_request(query, self, observer)
 end
 

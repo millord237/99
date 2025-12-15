@@ -1,7 +1,5 @@
 R("99")
 
-function foo() end
-
 --- @param m _99.Mark
 ---@param count number
 function done(m, count)

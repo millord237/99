@@ -25,8 +25,6 @@ local function update_code(response, location)
         table.insert(lines, 1, "")
     end
     vim.api.nvim_buf_set_text(buffer, row, col, row, col, lines)
-
-    location:clear_marks()
 end
 
 --- @param _99 _99.State
@@ -44,8 +42,8 @@ local function implement_fn(_99)
     end
 
     local range = Range:from_ts_node(fn_call, buffer)
-    local context = Context.new(_99)
     local location = Location.from_ts_node(fn_call, range)
+    local context = Context.new(_99):finalize(_99, location)
     local request = Request.new({
         on_complete = update_code,
         model = _99.model,
@@ -83,6 +81,7 @@ local function implement_fn(_99)
         at_call_site:stop()
     end)
 
+    context:add_to_request(request)
     request:add_prompt_content(_99.prompts.prompts.implement_function)
     request:start({
         on_stdout = function(line)
@@ -92,11 +91,13 @@ local function implement_fn(_99)
             code_placement:stop()
             at_call_site:stop()
             if not ok then
+                location:clear_marks()
                 Logger:fatal(
-                    "unable to fll in function, enable and check logger for more details"
+                    "unable to implement function, enable and check logger for more details"
                 )
             end
-            update_code(response, location)
+            pcall(update_code, response, location)
+            location:clear_marks()
         end,
         on_stderr = function(line)
             --- TODO: If there is an error here, what should we do ?
