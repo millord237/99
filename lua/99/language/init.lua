@@ -3,6 +3,7 @@ local Range = require("99.geo").Range
 
 --- @class _99.LanguageOps
 --- @field add_function_spacing fun(lines: number, location: _99.Location): number
+--- @field log_item fun(item_name: string): string
 
 --- @class _99.Langauges
 --- @field languages table<string, _99.LanguageOps>
@@ -52,6 +53,29 @@ function M.add_function_spacing(_99, location)
     end
 
     return end_row
+end
+
+--- @param _ _99.State
+--- @param item_name string
+--- @param buffer number?
+--- @return string
+function M.log_item(_, item_name, buffer)
+    buffer = buffer or vim.api.nvim_get_current_buf()
+    local file_type = vim.api.nvim_get_option_value("filetype", { buf = buffer })
+    local lang = M.languages[file_type]
+    if not lang then
+        Logger:fatal("language currently not supported", "lang", file_type)
+    end
+
+    if type(lang.log_item) ~= "function" then
+        Logger:fatal(
+            "language does not support log_item",
+            "lang",
+            file_type
+        )
+    end
+
+    return lang.log_item(item_name)
 end
 
 return M

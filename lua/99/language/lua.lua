@@ -30,4 +30,10 @@ function M.add_function_spacing(lines, location)
     return end_row
 end
 
+--- @param item_name string
+--- @return string
+function M.log_item(item_name)
+    return string.format("vim.inspect(%s)", item_name)
+end
+
 return M

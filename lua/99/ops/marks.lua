@@ -49,7 +49,13 @@ end
 function Mark.mark_end_of_range(buffer, range)
     local end_ = range.end_
     local line, col = end_:to_vim()
-    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, line, col + 1, {})
+
+    -- TODO: i am a bit confused by this one
+    -- i am needing to minus 1 but i should not need to do this... this makes me very nervous
+    -- that i have a but somewhere in the range and tsnode integration.
+    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, line - 1, col + 1, {})
+
+    implement_fizz_buzz()
 
     return setmetatable({
         id = id,

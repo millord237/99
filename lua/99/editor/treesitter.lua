@@ -201,8 +201,8 @@ function M.containing_function(buffer, cursor)
         return
     end
 
-    --- TODO: learn the diagnostics
-    --- @type _99.treesitter.Function
+    --- TODO: we need some language specific things here.
+    --- that is because comments above the function needs to considered
     return Function.from_ts_node(found_node, lang, buffer, cursor)
 end
 

@@ -31,6 +31,7 @@ end
 --- @field model string?
 --- @field md_files string[]?
 --- @field provider _99.Provider?
+--- @field debug_log_prefix string?
 
 --- unanswered question -- will i need to queue messages one at a time or
 --- just send them all...  So to prepare ill be sending around this state object
@@ -82,12 +83,19 @@ local _99 = {
 }
 
 function _99.implement_fn()
-    print("implement_fn#_99_state provider", vim.inspect(_99_state.provider_override))
+    print(
+        "implement_fn#_99_state provider",
+        vim.inspect(_99_state.provider_override)
+    )
     ops.implement_fn(_99_state)
 end
 
 function _99.fill_in_function()
     ops.fill_in_function(_99_state)
+end
+
+function _99.debug_function()
+    ops.debug_function(_99_state)
 end
 
 function _99.stop_all_requests()
@@ -152,6 +160,13 @@ end
 function _99.set_model(model)
     _99_state.model = model
     return _99
+end
+
+function _99.__debug()
+    Logger:configure({
+        path = nil,
+        level = Level.DEBUG,
+    })
 end
 
 return _99

@@ -63,6 +63,7 @@ function FileSink:write_line(str)
     if not success then
         error("unable to write to file sink", err)
     end
+    vim.uv.fs_fsync(self.fd)
 end
 
 --- @class PrintSink : LoggerSink
@@ -141,6 +142,7 @@ function Logger:configure(opts)
     if opts.path then
         self:file_sink(opts.path)
     else
+        print("setting print sink")
         self:print_sink()
     end
 
