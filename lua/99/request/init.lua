@@ -77,6 +77,7 @@ function OpenCodeProvider:make_request(query, request, observer)
                 return
             end
             if obj.code ~= 0 then
+                observer.on_complete(false, "")
                 Logger:fatal(
                     "opencode make_query failed",
                     "id",
@@ -84,7 +85,6 @@ function OpenCodeProvider:make_request(query, request, observer)
                     "obj from results",
                     obj
                 )
-                return
             end
             vim.schedule(function()
                 local ok, res = OpenCodeProvider._retrieve_response(request)

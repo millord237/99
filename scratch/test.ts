@@ -19,3 +19,13 @@ const foo = function() {
 }
 
 
+function display_text(
+  canvas: HTMLCanvasElement,
+  text: string,
+  x: number,
+  y: number,
+): void {
+    // test
+}
+
+function test_again() {}

@@ -83,10 +83,6 @@ local _99 = {
 }
 
 function _99.implement_fn()
-    print(
-        "implement_fn#_99_state provider",
-        vim.inspect(_99_state.provider_override)
-    )
     ops.implement_fn(_99_state)
 end
 
@@ -94,8 +90,8 @@ function _99.fill_in_function()
     ops.fill_in_function(_99_state)
 end
 
-function _99.debug_function()
-    ops.debug_function(_99_state)
+function _99.__debug_ident()
+    ops.debug_ident(_99_state)
 end
 
 function _99.stop_all_requests()

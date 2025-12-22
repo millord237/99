@@ -1,5 +1,7 @@
 local M = {}
 
+M.names = {}
+
 --- @param lines number
 --- @param location _99.Location
 --- @return number

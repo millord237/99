@@ -99,8 +99,11 @@ local function fill_in_function(_99)
             if request:is_cancelled() then
                 return
             end
+
+            --- TODO: request_status should be morphed into an error
+            --- for a few seconds, or maintained until intentionally stopped...
             if not ok then
-                Logger:fatal(
+                Logger:error(
                     "unable to fill in function, enable and check logger for more details"
                 )
             end
