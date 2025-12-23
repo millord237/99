@@ -103,6 +103,7 @@ local function fill_in_function(_99)
                 Logger:error(
                     "unable to fill in function, enable and check logger for more details"
                 )
+                return
             elseif status == "cancelled" then
                 -- TODO: small status window here
                 return

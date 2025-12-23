@@ -5,12 +5,16 @@ local levels = require("99.logger.level")
 --- @field path string?
 --- @field print_on_error? boolean
 --- @field max_logs_cached? number
+--- @field max_errors_cached? number
+--- @field error_cache_level? number
 
 --- @class _99.Logger.LoggerConfig
 --- @field type? "file" | "print"
 --- @field path? string
 --- @field level? number
 --- @field max_logs_cached? number
+--- @field max_errors_cached? number
+--- @field error_cache_level? number i dont know how to do enum values :)
 
 --- @param ... any[]
 --- @return string
@@ -93,6 +97,10 @@ end
 --- @field sink LoggerSink
 --- @field print_on_error boolean
 --- @field log_cache string[]
+--- @field max_logs_cached number
+--- @field max_errors_cached number
+--- @field error_cache string[]
+--- @field error_cache_level number
 local Logger = {}
 Logger.__index = Logger
 
@@ -104,6 +112,10 @@ function Logger:new(level)
         level = level,
         print_on_error = false,
         log_cache = {},
+        error_cache = {},
+        error_cache_level = levels.FATAL,
+        max_errors_cached = 5,
+        max_logs_cached = 100,
     }, self)
 end
 
@@ -155,19 +167,27 @@ function Logger:configure(opts)
     end
 
     self.max_logs_cached = opts.max_logs_cached or 100
+    self.max_errors_cached = opts.max_errors_cached or 5
+    self.error_cache_level = opts.error_cache_level or levels.FATAL
 end
 
+--- @param level number
 --- @param line string
-function Logger:_cache_log(line)
+function Logger:_cache_log(level, line)
     if not self.log_cache then
         self.log_cache = {}
     end
 
     table.insert(self.log_cache, line)
+    if level >= self.error_cache_level then
+        table.insert(self.error_cache, line)
+    end
 
-    local max = self.max_logs_cached or 100
-    if #self.log_cache > max then
+    if #self.log_cache > self.max_logs_cached then
         table.remove(self.log_cache, 1)
+    end
+    if #self.error_cache > self.max_errors_cached then
+        table.remove(self.error_cache, 1)
     end
 end
 
@@ -182,7 +202,7 @@ function Logger:_log(level, msg, ...)
     if self.print_on_error and level == levels.ERROR then
         print(line)
     end
-    self:_cache_log(line)
+    self:_cache_log(level, line)
     self.sink:write_line(line)
 end
 

@@ -35,15 +35,14 @@ function Context:_read_md_files(location)
     local cwd = vim.uv.cwd()
     local dir = vim.fn.fnamemodify(location.full_path, ":h")
 
-    Logger:info("_read_md_files", "cwd", cwd, "dir", dir)
     while dir:find(cwd, 1, true) == 1 do
         for _, md_file_name in ipairs(self.md_file_names) do
             local md_path = dir .. "/" .. md_file_name
             local file = io.open(md_path, "r")
-            Logger:info("_read_md_files#while#for", "md_path", md_path)
             if file then
                 local content = file:read("*a")
                 file:close()
+                Logger:info("Context#adding md file to the context", "md_path", md_path)
                 table.insert(self.ai_context, content)
             end
         end
@@ -53,7 +52,6 @@ function Context:_read_md_files(location)
         end
 
         dir = vim.fn.fnamemodify(dir, ":h")
-        Logger:info("_read_md_files#while", "new dir selected", dir)
     end
 end
 

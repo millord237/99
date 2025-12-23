@@ -3,6 +3,8 @@ local _99 = require("99")
 local test_utils = require("99.test.test_utils")
 local eq = assert.are.same
 local test_content = require("99.test.test_content")
+local Logger = require("99.logger.logger")
+local Levels = require("99.logger.level")
 
 --- @param content string[]
 --- @return _99.test.Provider, number
@@ -10,6 +12,9 @@ local function setup(content)
     local p = test_utils.TestProvider.new()
     _99.setup({
         provider = p,
+        logger = {
+            error_cache_level = Levels.ERROR
+        },
     })
 
     local buffer = test_utils.create_file(content, "lua", 2)
