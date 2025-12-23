@@ -1,5 +1,3 @@
-local Logger = require("99.logger.logger")
-
 local nsid = vim.api.nvim_create_namespace("99.marks")
 
 --- @class _99.Mark.Text
@@ -20,6 +18,28 @@ function Mark.mark_above_range(buffer, range)
     local start = range.start
     local line, _ = start:to_vim()
     local id = vim.api.nvim_buf_set_extmark(buffer, nsid, line - 1, 0, {})
+
+    return setmetatable({
+        id = id,
+        buffer = buffer,
+        nsid = nsid,
+    }, Mark)
+end
+
+--- @param range _99.Range
+--- @return _99.Mark
+--- @return _99.Mark
+function Mark.mark_range(range)
+    local buffer = range.buffer
+    return Mark.mark_point(buffer, range.start), Mark.mark_point(buffer, range.end_)
+end
+
+--- @param buffer number
+--- @param point _99.Point
+--- @return _99.Mark
+function Mark.mark_point(buffer, point)
+    local line, col = point:to_vim()
+    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, line - 1, col, {})
 
     return setmetatable({
         id = id,
@@ -49,11 +69,7 @@ end
 function Mark.mark_end_of_range(buffer, range)
     local end_ = range.end_
     local line, col = end_:to_vim()
-
-    -- TODO: i am a bit confused by this one
-    -- i am needing to minus 1 but i should not need to do this... this makes me very nervous
-    -- that i have a but somewhere in the range and tsnode integration.
-    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, line - 1, col + 1, {})
+    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, line, col + 1, {})
 
     return setmetatable({
         id = id,
