@@ -95,6 +95,9 @@ function _99.fill_in_function()
     ops.fill_in_function(_99_state)
 end
 
+function _99.visual()
+end
+
 --- View all the logs that are currently cached.  Cached log count is determined
 --- by _99.Logger.Options that are passed in.
 function _99.view_log()

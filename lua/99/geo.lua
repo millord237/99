@@ -191,6 +191,16 @@ function Range:new(buffer, start, end_)
     }, self)
 end
 
+function Range:from_visual_selection()
+    local buffer = vim.api.nvim_get_current_buf()
+    local start_pos = vim.fn.getpos("'<")
+    local end_pos = vim.fn.getpos("'>")
+    local start = Point:new(start_pos[2], start_pos[3])
+    local end_ = Point:new(end_pos[2], end_pos[3])
+
+    return Range:new(buffer, start, end_)
+end
+
 ---@param node _99.treesitter.TSNode
 ---@param buffer number
 ---@return _99.Range
