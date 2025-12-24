@@ -3,6 +3,8 @@ local Level = require("99.logger.level")
 local ops = require("99.ops")
 local Languages = require("99.language")
 local Window = require("99.window")
+local geo = require("99.geo")
+local Range = geo.Range
 
 --- @alias _99.Cleanup fun(): nil
 
@@ -96,6 +98,7 @@ function _99.fill_in_function()
 end
 
 function _99.visual()
+    local range = Range.from_visual_selection()
 end
 
 --- View all the logs that are currently cached.  Cached log count is determined

@@ -56,7 +56,7 @@ local function implement_fn(_99)
     if func then
         location.marks.code_placement = Mark.mark_above_func(buffer, func)
     else
-        location.marks.code_placement = Mark.mark_above_range(buffer, range)
+        location.marks.code_placement = Mark.mark_above_range(range)
     end
 
     local code_placement = RequestStatus.new(

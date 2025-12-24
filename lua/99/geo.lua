@@ -160,6 +160,20 @@ function Point:eq(point)
     return project(self) == project(point)
 end
 
+--- @param point _99.Point
+--- @return _99.Point
+function Point:add(point)
+    return Point:new(self.row + point.row, self.col + point.col)
+end
+
+--- @param point _99.Point
+--- @return _99.Point
+--- @param point _99.Point
+--- @return _99.Point
+function Point:sub(point)
+    return Point:new(self.row - point.row, self.col - point.col)
+end
+
 --- @param mark _99.Mark
 --- @return _99.Point
 function Point.from_mark(mark)
@@ -191,7 +205,7 @@ function Range:new(buffer, start, end_)
     }, self)
 end
 
-function Range:from_visual_selection()
+function Range.from_visual_selection()
     local buffer = vim.api.nvim_get_current_buf()
     local start_pos = vim.fn.getpos("'<")
     local end_pos = vim.fn.getpos("'>")

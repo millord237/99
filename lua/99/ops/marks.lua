@@ -11,13 +11,14 @@ local nsid = vim.api.nvim_create_namespace("99.marks")
 local Mark = {}
 Mark.__index = Mark
 
---- @param buffer number
 --- @param range _99.Range
 --- @return _99.Mark
-function Mark.mark_above_range(buffer, range)
+function Mark.mark_above_range(range)
+    local buffer = range.buffer
     local start = range.start
     local line, _ = start:to_vim()
-    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, line - 1, 0, {})
+    local above = line == 0 and line or line - 1
+    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, above, 0, {})
 
     return setmetatable({
         id = id,
@@ -39,7 +40,7 @@ end
 --- @return _99.Mark
 function Mark.mark_point(buffer, point)
     local line, col = point:to_vim()
-    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, line - 1, col, {})
+    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, line, col, {})
 
     return setmetatable({
         id = id,
