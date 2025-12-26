@@ -29,12 +29,12 @@ local function r(buffer)
     return vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
 end
 
+local content = {
+    "",
+    "local foo = function() end",
+}
 describe("fill_in_function", function()
     it("replace function contents", function()
-        local content = {
-            "",
-            "local foo = function() end",
-        }
         local p, buffer = setup(content, 2, 12)
         local state = _99.__get_state()
 
@@ -56,15 +56,13 @@ describe("fill_in_function", function()
         eq(0, state:active_request_count())
     end)
 
-    --[[
     it("should cancel request when stop_all_requests is called", function()
-        local p, buffer = setup(test_content.empty_function_single_line)
+        local p, buffer = setup(content, 2, 12)
         _99.fill_in_function()
 
-        eq(test_content.empty_function_single_line, r(buffer))
+        eq(content, r(buffer))
 
         assert.is_false(p.request.request:is_cancelled())
-
         assert.is_not_nil(p.request)
         assert.is_not_nil(p.request.request)
 
@@ -76,19 +74,19 @@ describe("fill_in_function", function()
         p:resolve("success", "function foo()\n    return 42\nend")
         test_utils.next_frame()
 
-        eq(test_content.empty_function_single_line, r(buffer))
+        eq(content, r(buffer))
     end)
 
     it("should handle error cases with graceful failures", function()
-        local p, buffer = setup(test_content.empty_function_single_line)
+        local p, buffer = setup(content, 2, 12)
         _99.fill_in_function()
 
-        eq(test_content.empty_function_single_line, r(buffer))
+        eq(content, r(buffer))
 
         p:resolve("failed", "Something went wrong")
         test_utils.next_frame()
 
-        eq(test_content.empty_function_single_line, r(buffer))
+        eq(content, r(buffer))
     end)
     --]]
 end)
