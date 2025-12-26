@@ -82,7 +82,7 @@ function _99_State:remove_active_request(id)
     local r = self.__active_requests[id]
     assert(r, "there is no active request for id.  implementation broken")
     Logger:debug("removing active request", "id", id)
-    self.__active_requests = nil
+    self.__active_requests[id] = nil
 end
 
 local _99_state = _99_State.new()
