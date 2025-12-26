@@ -35,6 +35,10 @@ function Mark.mark_range(range)
     return Mark.mark_point(buffer, range.start), Mark.mark_point(buffer, range.end_)
 end
 
+--- @return boolean
+function Mark:is_valid()
+end
+
 --- @param buffer number
 --- @param point _99.Point
 --- @return _99.Mark

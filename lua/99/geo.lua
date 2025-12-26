@@ -1,3 +1,4 @@
+local Logger = require("99.logger.logger")
 local project_row = 100000000
 
 --- @param point_or_row _99.Point | number
@@ -229,6 +230,25 @@ function Range:from_ts_node(node, buffer)
     }
 
     return setmetatable(range, self)
+end
+
+---@param start _99.Mark
+---@param end_ _99.Mark
+---@return _99.Range
+function Range.from_marks(start, end_)
+    local start_point = Point.from_mark(start)
+    local end_point = Point.from_mark(end_)
+    return Range:new(start.buffer, start_point, end_point)
+end
+
+--- @param replace_with string[]
+function Range:replace_text(replace_with)
+    local s_row, s_col = self.start:to_vim()
+    local e_row, e_col = self.end_:to_vim()
+    local bufname = vim.api.nvim_buf_get_name(self.buffer)
+
+    Logger:debug("replacing text", "file", bufname, "buffer", self.buffer, "range", self:to_string())
+    vim.api.nvim_buf_set_text(self.buffer, s_row, s_col, e_row, e_col, replace_with)
 end
 
 --- @param point _99.Point

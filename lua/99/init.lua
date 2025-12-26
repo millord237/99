@@ -59,23 +59,22 @@ function _99_State.new()
     return setmetatable(props, _99_State) -- TODO: How do i do this right?
 end
 
+local _active_request_id = 0
 ---@param clean_up _99.Cleanup
+---@return number
 function _99_State:add_active_request(clean_up)
-    table.insert(self.__active_requests, clean_up)
+    _active_request_id = _active_request_id + 1
+    Logger:debug("adding active request", "id", _active_request_id)
+    self.__active_requests[_active_request_id] = clean_up
+    return _active_request_id
 end
 
---- @param context _99.Context
----@param on_complete fun(ok: boolean, res: string): nil
----@return _99.Request
-function _99_State:request(context, on_complete)
-    local Request = require("99.request")
-    local request = Request.new({
-        model = self.model,
-        context = context,
-        provider = self.provider_override,
-        on_complete = on_complete,
-    })
-    return request
+---@param id number
+function _99_State:remove_active_request(id)
+    local r = self.__active_requests[id]
+    assert(r, "there is no active request for id.  implementation broken")
+    Logger:debug("removing active request", "id", id)
+    self.__active_requests = nil
 end
 
 local _99_state = _99_State.new()
@@ -99,6 +98,7 @@ end
 
 function _99.visual()
     local range = Range.from_visual_selection()
+    ops.query(_99_state, range)
 end
 
 --- View all the logs that are currently cached.  Cached log count is determined

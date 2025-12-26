@@ -97,13 +97,7 @@ Function.__index = Function
 --- to replace at the exact function begin / end
 --- @param replace_with string[]
 function Function:replace_text(replace_with)
-    local s_row, s_col = self.function_range.start:to_vim()
-    local e_row, e_col = self.function_range.end_:to_vim()
-    local buffer = self.function_range.buffer
-    local bufname = vim.api.nvim_buf_get_name(buffer)
-
-    Logger:debug("replacing text", "file", bufname, "buffer", buffer, "range", self.function_range:to_string())
-    vim.api.nvim_buf_set_text(buffer, s_row, s_col, e_row, e_col, replace_with)
+    self.function_range:replace_text(replace_with)
 end
 
 --- @param ts_node _99.treesitter.TSNode
