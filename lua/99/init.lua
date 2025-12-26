@@ -119,7 +119,7 @@ function _99.__debug_ident()
 end
 
 function _99.stop_all_requests()
-    for _, clean_up in ipairs(_99_state.__active_requests) do
+    for _, clean_up in pairs(_99_state.__active_requests) do
         clean_up()
     end
     _99_state.__active_requests = {}

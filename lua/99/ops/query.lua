@@ -24,12 +24,14 @@ local function query(_99, range)
     local top_status = RequestStatus.new(250, _99.ai_stdout_rows or 1, "Implementing...")
     local bottom_status = RequestStatus.new(250, 1, "Implementing...")
 
+    local clean_up_id = -1
     local function clean_up()
         top_status:stop()
         bottom_status:stop()
         location:clear_marks()
+        _99:remove_active_request(clean_up_id)
     end
-    _99:add_active_request(function()
+    clean_up_id = _99:add_active_request(function()
         clean_up()
         request:cancel()
     end)
@@ -43,8 +45,6 @@ local function query(_99, range)
         on_complete = function(status, response)
             if status == "cancelled" then
                 Logger:debug("request cancelled for visual selection, removing marks")
-                clean_up()
-                return
             elseif status == "failed" then
                 Logger:error("request failed for visual_selection", "error response", response or "no response provided")
             elseif status == "success" then
@@ -53,8 +53,10 @@ local function query(_99, range)
                     Logger:fatal("the original visual_selection has been destroyed.  You cannot delete the original visual selection during a request")
                 end
                 local new_range = Range.from_marks(top_mark, bottom_mark)
-                new_range:
+                local lines = vim.split(response, "\n")
+                new_range:replace_text(lines)
             end
+            clean_up()
         end,
         on_stdout = function(line)
             if display_ai_status then
