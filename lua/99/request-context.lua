@@ -5,12 +5,14 @@ local random_file = utils.random_file
 --- @class _99.RequestContext
 --- @field md_file_names string[]
 --- @field ai_context string[]
+--- @field model string
 --- @field tmp_file string
 --- @field full_path string
 --- @field buffer number
 --- @field file_type string
 --- @field marks table<string, _99.Mark>
 --- @field logger _99.Logger
+--- @field xid number
 --- @field range _99.Range?
 --- @field _99 _99.State
 local RequestContext = {}
@@ -38,6 +40,8 @@ function RequestContext.from_current_buffer(_99, xid)
         full_path = full_path,
         file_type = file_type,
         logger = Logger:set_id(xid),
+        xid = xid,
+        model = _99.model,
         marks = {},
     }, RequestContext)
 end

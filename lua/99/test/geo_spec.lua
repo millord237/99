@@ -1,5 +1,4 @@
 -- luacheck: globals describe it assert before_each after_each
-local Mark = require("99.ops.marks")
 local geo = require("99.geo")
 local Point = geo.Point
 local Range = geo.Range
