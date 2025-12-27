@@ -24,6 +24,7 @@ M.created_files = {}
 --- @field query string
 --- @field request _99.Request
 --- @field observer _99.ProviderObserver?
+--- @field logger _99.Logger
 
 --- @class _99.test.Provider : _99.Provider
 --- @field request _99.test.ProviderRequest?
@@ -38,13 +39,13 @@ end
 ---@param request _99.Request
 ---@param observer _99.ProviderObserver?
 function TestProvider:make_request(query, request, observer)
-    local id = get_id()
-    Logger:debug("make_request", "tmp_file", request.config.tmp_file, "id", id)
+    local logger = request.context.logger:set_area("TestProvider")
+    logger:debug("make_request", "tmp_file", request.context.tmp_file)
     self.request = {
         query = query,
         request = request,
         observer = observer,
-        id = id,
+        logger = logger,
     }
 end
 
@@ -54,7 +55,12 @@ function TestProvider:resolve(status, result)
     assert(self.request, "you cannot call resolve until make_request is called")
     local obs = self.request.observer
     if obs then
-        obs.on_complete(status, result)
+        --- to match the behavior expected from the OpenCodeProvider
+        if self.request.request:is_cancelled() then
+            obs.on_complete("cancelled", result)
+        else
+            obs.on_complete(status, result)
+        end
     end
     self.request = nil
 end

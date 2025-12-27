@@ -1,8 +1,7 @@
-local Context = require("99.ops.context")
+local RequestContext = require("99.request-context")
 local Logger = require("99.logger.logger")
 local Request = require("99.request")
 local editor = require("99.editor")
-local Location = require("99.editor.location")
 local geo = require("99.geo")
 local Range = geo.Range
 local Point = geo.Point
@@ -43,7 +42,7 @@ local function implement_fn(_99)
 
     local range = Range:from_ts_node(fn_call, buffer)
     local location = Location.from_range(range)
-    local context = Context.new(_99):finalize(_99, location)
+    local context = RequestContext.new(_99):finalize(_99, location)
     local request = Request.new({
         model = _99.model,
         tmp_file = context.tmp_file,

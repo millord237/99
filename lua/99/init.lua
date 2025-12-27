@@ -23,7 +23,7 @@ local function create_99_state()
     return {
         model = "anthropic/claude-sonnet-4-5",
         md_files = {},
-        prompts = require("99.prompt_settings"),
+        prompts = require("99.prompt-settings"),
         ai_stdout_rows = 3,
         languages = { "lua" },
         display_errors = false,
@@ -79,8 +79,6 @@ end
 
 ---@param id number
 function _99_State:remove_active_request(id)
-    local r = self.__active_requests[id]
-    assert(r, "there is no active request for id.  implementation broken")
     Logger:debug("removing active request", "id", id)
     self.__active_requests[id] = nil
 end
@@ -101,7 +99,7 @@ local _99 = {
 local function get_context(operation_name)
     local trace_id = get_id()
     local context = RequestContext.from_current_buffer(_99_state, trace_id)
-    context.logger:debug("99 Request", "method", operation_name, "id", trace_id)
+    context.logger:debug("99 Request", "method", operation_name)
     return context
 end
 

@@ -16,9 +16,7 @@ local levels = require("99.logger.level")
 --- @field max_errors_cached? number
 --- @field error_cache_level? number i dont know how to do enum values :)
 
---- @param ... any[]
---- @return string
-local function stringifyArgs(...)
+local function to_args(...)
     local count = select("#", ...)
     local out = {}
     assert(
@@ -29,37 +27,34 @@ local function stringifyArgs(...)
         local key = select(i, ...)
         local value = select(i + 1, ...)
         assert(type(key) == "string", "keys in logging must be strings")
-
-        if type(value) == "table" then
-            if type(value.to_string) == "function" then
-                value = value:to_string()
-            else
-                value = vim.inspect(value)
-            end
-        elseif type(value) == "string" then
-            value = string.format('"%s"', value)
-        else
-            value = tostring(value)
-        end
-
-        table.insert(out, string.format("%s=%s", key, value))
+        assert(out[key] == nil, "key collision in logs: " .. key)
+        out[key] = value
     end
-    return table.concat(out, " ")
+    return out
+end
+
+--- @param log_statement table<string, any>
+--- @param args table<string, any>
+local function put_args(log_statement, args)
+    for k, v in pairs(args) do
+        assert(log_statement[k] == nil, "key collision in logs: " .. k)
+        log_statement[k] = v
+    end
 end
 
 --- @class LoggerSink
 --- @field write_line fun(LoggerSink, string): nil
 
 --- @class VoidLogger : LoggerSink
-local VoidLogger = {}
-VoidLogger.__index = VoidLogger
+local VoidSink = {}
+VoidSink.__index = VoidSink
 
-function VoidLogger.new()
-    return setmetatable({}, VoidLogger)
+function VoidSink.new()
+    return setmetatable({}, VoidSink)
 end
 
 --- @param _ string
-function VoidLogger:write_line(_) end
+function VoidSink:write_line(_) end
 
 --- @class FileSink : LoggerSink
 --- @field fd number
@@ -112,7 +107,7 @@ end
 --- @field max_errors_cached number
 --- @field error_cache string[]
 --- @field error_cache_level number
---- @field extra_params string[]
+--- @field extra_params table<string, any>
 local Logger = {}
 Logger.__index = Logger
 
@@ -120,9 +115,10 @@ Logger.__index = Logger
 function Logger:new(level)
     level = level or levels.FATAL
     return setmetatable({
-        sink = VoidLogger:new(),
+        sink = VoidSink:new(),
         level = level,
         print_on_error = false,
+        extra_params = {},
         log_cache = {},
         error_cache = {},
         error_cache_level = levels.FATAL,
@@ -132,10 +128,15 @@ function Logger:new(level)
 end
 
 function Logger:clone()
+    local params = {}
+    for k, v in pairs(self.extra_params) do
+        params[k] = v
+    end
     return setmetatable({
         sink = self.sink,
         level = self.level,
         print_on_error = self.print_on_error,
+        extra_params = params,
         log_cache = {},
         error_cache = {},
         error_cache_level = self.error_cache_level,
@@ -152,6 +153,13 @@ function Logger:file_sink(path)
 end
 
 --- @return _99.Logger
+function Logger:void_sink()
+    self.sink = VoidSink:new()
+    return self
+end
+
+
+--- @return _99.Logger
 function Logger:print_sink()
     self.sink = PrintSink:new()
     return self
@@ -161,8 +169,7 @@ end
 --- @return _99.Logger
 function Logger:set_area(area)
     local new_logger = self:clone()
-    table.insert(new_logger.extra_params, "Area")
-    table.insert(new_logger.extra_params, area)
+    new_logger.extra_params["Area"] = area
     return new_logger
 end
 
@@ -170,8 +177,7 @@ end
 --- @return _99.Logger
 function Logger:set_id(xid)
     local new_logger = self:clone()
-    table.insert(new_logger.extra_params, "id")
-    table.insert(new_logger.extra_params, xid)
+    new_logger.extra_params["id"] = xid
     return new_logger
 end
 
@@ -198,11 +204,12 @@ function Logger:configure(opts)
         self:set_level(opts.level)
     end
 
-    if opts.path then
+    if opts.path == "print" then
+        self:print_sink()
+    elseif opts.path then
         self:file_sink(opts.path)
     else
-        print("setting print sink")
-        self:print_sink()
+        self:void_sink()
     end
 
     if opts.print_on_error then
@@ -239,14 +246,20 @@ function Logger:_log(level, msg, ...)
         return
     end
 
-    local args = stringifyArgs(...)
-    local line =
-        string.format("[%s]: %s %s", levels.levelToString(level), msg, args)
+    local log_statement = {
+        level = levels.levelToString(level),
+        msg = msg,
+    }
+
+    put_args(log_statement, to_args(...))
+    put_args(log_statement, self.extra_params)
+    local json_string = vim.json.encode(log_statement)
     if self.print_on_error and level == levels.ERROR then
-        print(line)
+        print(json_string)
     end
-    self:_cache_log(level, line)
-    self.sink:write_line(line)
+
+    self:_cache_log(level, json_string)
+    self.sink:write_line(json_string)
 end
 
 --- @param msg string
