@@ -12,11 +12,5 @@ M.empty_function_single_line = {
     "",
 }
 
-M.function_with_unknown_fn_call = {
-    "function some_other_function() end",
-    "function foo()",
-    "  bar()",
-    "end",
-    "",
-}
+M.function_with_unknown_fn_call =
 return M

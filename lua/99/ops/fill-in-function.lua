@@ -1,11 +1,11 @@
 local geo = require("99.geo")
 local Point = geo.Point
-local Logger = require("99.logger.logger")
 local Request = require("99.request")
 local Mark = require("99.ops.marks")
 local editor = require("99.editor")
 local RequestStatus = require("99.ops.request_status")
 local Window = require("99.window")
+local make_clean_up = require("99.ops.clean-up")
 
 --- @param context _99.RequestContext
 --- @param res string
@@ -14,26 +14,21 @@ local function update_file_with_changes(context, res)
     local mark = context.marks.function_location
     local logger = context.logger:set_area("fill_in_function#update_file_with_changes")
 
-    assert(
+    logger:assert(
         mark and buffer,
         "mark and buffer have to be set on the location object"
     )
-    assert(mark:is_valid(), "mark is no longer valid")
+    logger:assert(mark:is_valid(), "mark is no longer valid")
 
     local func_start = Point.from_mark(mark)
     local ts = editor.treesitter
-    local func = ts.containing_function(buffer, func_start)
+    local func = ts.containing_function(buffer, func_start, context)
 
-    if not func then
-        logger:error(
-            "update_file_with_changes: unable to find function at mark location"
-        )
-        error(
-            "update_file_with_changes: unable to find function at mark location"
-        )
-    end
+    logger:assert(func, "update_file_with_changes: unable to find function at mark location")
 
     local lines = vim.split(res, "\n")
+
+    -- lua docs ignore next error, func being tested already in assert
     func:replace_text(lines)
 end
 
@@ -66,15 +61,11 @@ local function fill_in_function(context)
     )
     request_status:start()
 
-    local _99 = context._99
-    local active_request = -1
-    local function clean_up()
+    local clean_up = make_clean_up(context, function()
         context:clear_marks()
         request:cancel()
         request_status:stop()
-        _99:remove_active_request(active_request)
-    end
-    active_request = _99:add_active_request(clean_up)
+    end)
 
     request:start({
         on_stdout = function(line)

@@ -169,8 +169,6 @@ end
 
 --- @param point _99.Point
 --- @return _99.Point
---- @param point _99.Point
---- @return _99.Point
 function Point:sub(point)
     return Point:new(self.row - point.row, self.col - point.col)
 end
@@ -186,6 +184,16 @@ function Point.from_mark(mark)
         row = pos[1] + 1,
         col = pos[2] + 1,
     }, Point)
+end
+
+--- @return _99.Point
+function Point.from_visual_start()
+end
+
+--- @return _99.Point
+function Point.from_visual_end()
+    --- make sure you dont allow visual line extend beyond the end of the
+    --- actual text line
 end
 
 --- @class _99.Range
@@ -213,7 +221,14 @@ function Range.from_visual_selection()
     local start = Point:new(start_pos[2], start_pos[3])
     local end_ = Point:new(end_pos[2], end_pos[3])
 
-    return Range:new(buffer, start, end_)
+    --- visual line mode will select the end point for each row to be int max
+    --- which will cause marks to fail. so we have to correct it to the literal
+    --- row length
+    local end_r, end_c = end_:to_vim()
+    local end_line = vim.api.nvim_buf_get_lines(buffer, end_r, end_c, false)[1]
+    local actual_end = Point:new(end_pos[2], math.min(end_pos[2], #end_line + 1))
+
+    return Range:new(buffer, start, actual_end)
 end
 
 ---@param node _99.treesitter.TSNode

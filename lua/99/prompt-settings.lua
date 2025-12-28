@@ -25,7 +25,7 @@ local prompt_settings = {
     ---@param context _99.RequestContext
     ---@return string
     get_file_location = function(context)
-        assert(context.range, "get_file_location requires range specified")
+        context.logger:assert(context.range, "get_file_location requires range specified")
         return string.format(
             "<Location><File>%s</File><Function>%s</Function></Location>",
             context.full_path,

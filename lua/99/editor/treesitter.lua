@@ -80,7 +80,7 @@ function M.fn_call(buffer, cursor)
     end
     ::end_of_loops::
 
-    Logger:debug("treesitter#fn_call", "found", found)
+    Logger:debug("treesitter#fn_call", "found", found ~= nil)
 
     return found
 end
@@ -138,18 +138,20 @@ end
 
 --- @param buffer number
 --- @param cursor _99.Point
+--- @param context _99.RequestContext
 --- @return _99.treesitter.Function?
-function M.containing_function(buffer, cursor)
+function M.containing_function(buffer, cursor, context)
+    local logger = context and context.logger:set_area("treesitter") or Logger
     local lang = vim.bo[buffer].ft
     local root = tree_root(buffer, lang)
     if not root then
-        Logger:debug("LSP: could not find tree root")
+        logger:debug("LSP: could not find tree root")
         return nil
     end
 
     local ok, query = pcall(vim.treesitter.query.get, lang, function_query)
     if not ok or query == nil then
-        Logger:debug(
+        logger:debug(
             "LSP: not ok or query",
             "query",
             vim.inspect(query),
@@ -178,7 +180,7 @@ function M.containing_function(buffer, cursor)
         end
     end
 
-    Logger:debug(
+    logger:debug(
         "treesitter#containing_function",
         "found_range",
         found_range and found_range:to_string() or "found_range is nil"
@@ -191,7 +193,7 @@ function M.containing_function(buffer, cursor)
 
     ok, query = pcall(vim.treesitter.query.get, lang, function_query)
     if not ok or query == nil then
-        Logger:fatal("INVARIANT: found_range ", "range", found_range:to_text())
+        logger:fatal("INVARIANT: found_range ", "range", found_range:to_text())
         return
     end
 

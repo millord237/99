@@ -1,3 +1,4 @@
+local Point = require("99.geo").Point
 local nsid = vim.api.nvim_create_namespace("99.marks")
 
 --- @class _99.Mark.Text
@@ -118,6 +119,14 @@ function Mark:set_virtual_text(lines)
         id = self.id,
         virt_lines = formatted_lines,
     })
+end
+
+--- @param text string
+function Mark:set_text_at_mark(text)
+    local point = Point.from_mark(self)
+    local row, col = point:to_vim()
+    local lines = vim.split(text, "\n")
+    vim.api.nvim_buf_set_text(self.buffer, row, col, row, col, lines)
 end
 
 function Mark:delete()

@@ -1,5 +1,3 @@
-local Logger = require("99.logger.logger")
-
 --- @alias _99.Request.State "ready" | "calling-model" | "parsing-result" | "updating-file" | "cancelled"
 --- @alias _99.Request.ResponseState "failed" | "success" | "cancelled"
 
@@ -88,7 +86,7 @@ function OpenCodeProvider:make_request(query, request, observer)
                 vim.inspect(obj)
             )
             once_complete("failed", str)
-            Logger:fatal("opencode make_query failed", "obj from results", obj)
+            logger:fatal("opencode make_query failed", "obj from results", obj)
         end
         vim.schedule(function()
             local ok, res = OpenCodeProvider._retrieve_response(request)

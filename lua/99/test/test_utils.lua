@@ -1,11 +1,4 @@
-local Logger = require("99.logger.logger")
 local M = {}
-
-local _id = 1
-local function get_id()
-    _id = _id + 1
-    return _id
-end
 
 function M.next_frame()
     local next = false

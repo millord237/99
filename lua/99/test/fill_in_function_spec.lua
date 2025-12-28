@@ -86,5 +86,4 @@ describe("fill_in_function", function()
 
         eq(content, r(buffer))
     end)
-    --]]
 end)

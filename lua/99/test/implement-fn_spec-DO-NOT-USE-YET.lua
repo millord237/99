@@ -1,4 +1,4 @@
--- luacheck: globals describe it assert
+ -- luacheck: globals describe it assert
 local _99 = require("99")
 local test_utils = require("99.test.test_utils")
 local eq = assert.are.same
@@ -22,11 +22,18 @@ local function r(buffer)
     return vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
 end
 
+local content = {
+    "function some_other_function() end",
+    "function foo()",
+    "  bar()",
+    "end",
+    "",
+}
 describe("implement_function", function()
     it("basic call", function()
-        local p, buffer = setup(test_content.function_with_unknown_fn_call)
+        local p, buffer = setup(content)
         _99.implement_fn()
-        eq(test_content.function_with_unknown_fn_call, r(buffer))
+        eq(content, r(buffer))
 
         p:resolve("success", "function bar()\n  return 42\nend")
         test_utils.next_frame()

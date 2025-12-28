@@ -5,6 +5,7 @@ local Languages = require("99.language")
 local Window = require("99.window")
 local get_id = require("99.id")
 local RequestContext = require("99.request-context")
+local Range = require("99.geo").Range
 
 --- @alias _99.Cleanup fun(): nil
 
@@ -79,7 +80,13 @@ end
 
 ---@param id number
 function _99_State:remove_active_request(id)
-    Logger:debug("removing active request", "id", id)
+    local logger = Logger:set_id(id)
+    local r = self.__active_requests[id]
+    logger:assert(
+        r,
+        "there is no active request for id.  implementation broken"
+    )
+    logger:debug("removing active request")
     self.__active_requests[id] = nil
 end
 
@@ -103,17 +110,14 @@ local function get_context(operation_name)
     return context
 end
 
-function _99.implement_fn()
-    ops.implement_fn(get_context("implement_fn"))
-end
-
 function _99.fill_in_function()
     ops.fill_in_function(get_context("fill_in_function"))
 end
 
 function _99.visual()
     local context = get_context("visual")
-    ops.visual(context)
+    local range = Range.from_visual_selection()
+    ops.visual(context, range)
 end
 
 --- View all the logs that are currently cached.  Cached log count is determined

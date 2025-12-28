@@ -290,7 +290,16 @@ end
 --- @param ... any
 function Logger:fatal(msg, ...)
     self:_log(levels.FATAL, msg, ...)
-    assert(false, "fatal msg recieved: " .. msg)
+    assert(false, "fatal msg recieved: " .. msg, ...)
+end
+
+--- @param test any
+---@param msg string
+---@param ... any[]
+function Logger:assert(test, msg, ...)
+    if not test then
+        self:fatal(msg, ...)
+    end
 end
 
 local module_logger = Logger:new(levels.DEBUG)
