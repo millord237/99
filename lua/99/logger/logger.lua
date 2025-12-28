@@ -1,20 +1,12 @@
 local levels = require("99.logger.level")
+local MAX_REQUEST_DEFAULT = 5
+local time = require("99.time")
 
 --- @class _99.Logger.Options
 --- @field level number?
 --- @field path string?
 --- @field print_on_error? boolean
---- @field max_logs_cached? number
---- @field max_errors_cached? number
---- @field error_cache_level? number
-
---- @class _99.Logger.LoggerConfig
---- @field type? "file" | "print"
---- @field path? string
---- @field level? number
---- @field max_logs_cached? number
---- @field max_errors_cached? number
---- @field error_cache_level? number i dont know how to do enum values :)
+--- @field max_requests_cached? number
 
 local function to_args(...)
     local count = select("#", ...)
@@ -98,20 +90,22 @@ function PrintSink:write_line(str)
     print(str)
 end
 
+--- @class _99.Logger.RequestLogs
+--- @field last_access number
+--- @field logs string[]
+
 --- @class _99.Logger
 --- @field level number
 --- @field sink LoggerSink
 --- @field print_on_error boolean
---- @field log_cache string[]
---- @field max_logs_cached number
---- @field max_errors_cached number
---- @field error_cache string[]
---- @field error_cache_level number
+--- @field log_cache _99.Logger.RequestLogs[]
+--- @field max_requests_cached number
 --- @field extra_params table<string, any>
 local Logger = {}
 Logger.__index = Logger
 
 --- @param level number?
+--- @return _99.Logger
 function Logger:new(level)
     level = level or levels.FATAL
     return setmetatable({
@@ -120,13 +114,11 @@ function Logger:new(level)
         print_on_error = false,
         extra_params = {},
         log_cache = {},
-        error_cache = {},
-        error_cache_level = levels.FATAL,
-        max_errors_cached = 5,
-        max_logs_cached = 100,
+        max_logs_cached = MAX_REQUEST_DEFAULT,
     }, self)
 end
 
+--- @return _99.Logger
 function Logger:clone()
     local params = {}
     for k, v in pairs(self.extra_params) do
@@ -138,10 +130,7 @@ function Logger:clone()
         print_on_error = self.print_on_error,
         extra_params = params,
         log_cache = {},
-        error_cache = {},
-        error_cache_level = self.error_cache_level,
-        max_errors_cached = self.max_errors_cached,
-        max_logs_cached = self.max_logs_cached,
+        max_requests_cached = self.max_requests_cached,
     }, Logger)
 end
 
@@ -157,7 +146,6 @@ function Logger:void_sink()
     self.sink = VoidSink:new()
     return self
 end
-
 
 --- @return _99.Logger
 function Logger:print_sink()
@@ -216,28 +204,47 @@ function Logger:configure(opts)
         self:on_error_print_message()
     end
 
-    self.max_logs_cached = opts.max_logs_cached or 100
-    self.max_errors_cached = opts.max_errors_cached or 5
-    self.error_cache_level = opts.error_cache_level or levels.FATAL
+    self.max_requests_cached = opts.max_requests_cached or MAX_REQUEST_DEFAULT
 end
 
---- @param level number
 --- @param line string
-function Logger:_cache_log(level, line)
-    if not self.log_cache then
-        self.log_cache = {}
+function Logger:_cache_log(line)
+    local id = self.extra_params.id
+    if not id then
+        return
     end
 
-    table.insert(self.log_cache, line)
-    if level >= self.error_cache_level then
-        table.insert(self.error_cache, line)
+    local cache = self.log_cache[id]
+    local new_cache = false
+    if not cache then
+        cache = {
+            last_access = time.now(),
+            logs = {},
+        }
+        self.log_cache[id] = cache
+        new_cache = true
+    end
+    cache.last_access = time.now()
+    table.insert(cache.logs, line)
+
+    if not new_cache then
+        return
     end
 
-    if #self.log_cache > self.max_logs_cached then
-        table.remove(self.log_cache, 1)
+    local count = 0
+    local oldest = nil
+    local oldest_key = nil
+    for k, log in pairs(self.log_cache) do
+        if oldest == nil or log.last_access < oldest.last_access then
+            oldest = log
+            oldest_key = k
+        end
+        count = count + 1
     end
-    if #self.error_cache > self.max_errors_cached then
-        table.remove(self.error_cache, 1)
+
+    if count > self.max_requests_cached then
+        assert(oldest_key, "oldest key must exist")
+        self.log_cache[oldest_key] = nil
     end
 end
 
@@ -258,7 +265,7 @@ function Logger:_log(level, msg, ...)
         print(json_string)
     end
 
-    self:_cache_log(level, json_string)
+    self:_cache_log(json_string)
     self.sink:write_line(json_string)
 end
 
