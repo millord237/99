@@ -158,8 +158,20 @@ end
 --- but this one is lines.  probably need to revisit this
 --- @param lines string[]
 function M.display_full_screen_message(lines)
+    --- TODO: i really dislike that i am closing and opening windows
+    --- i think it would be better to perserve the one that is already open
+    --- but i just want this to work and then later... ohh much later, ill fix
+    --- this basic nonsense
+    M.clear_active_popups()
     local window = create_floating_window(create_window_full_screen())
-    vim.api.nvim_buf_set_lines(window.buf_id, 0, -1, false, lines)
+    local display_lines = {}
+    for _, line in ipairs(lines) do
+        local split_lines = vim.split(line, "\n")
+        for _, clean_line in ipairs(split_lines) do
+            table.insert(display_lines, clean_line)
+        end
+    end
+    vim.api.nvim_buf_set_lines(window.buf_id, 0, -1, false, display_lines)
 end
 
 --- not worried about perf, we will likely only ever have 1 maybe 2 windows

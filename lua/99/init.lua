@@ -18,6 +18,7 @@ local Range = require("99.geo").Range
 --- @field display_errors boolean
 --- @field provider_override _99.Provider?
 --- @field __active_requests _99.Cleanup[]
+--- @field __view_log_idx number
 
 --- @return _99.StateProps
 local function create_99_state()
@@ -29,6 +30,7 @@ local function create_99_state()
         languages = { "lua" },
         display_errors = false,
         __active_requests = {},
+        __view_log_idx = 1,
     }
 end
 
@@ -51,6 +53,7 @@ end
 --- @field display_errors boolean
 --- @field provider_override _99.Provider?
 --- @field __active_requests _99.Cleanup[]
+--- @field __view_log_idx number
 local _99_State = {}
 _99_State.__index = _99_State
 
@@ -122,15 +125,22 @@ end
 
 --- View all the logs that are currently cached.  Cached log count is determined
 --- by _99.Logger.Options that are passed in.
-function _99.view_log()
-    local logs = {}
-    for _, log in ipairs(Logger.log_cache) do
-        local lines = vim.split(log, "\n")
-        for _, line in ipairs(lines) do
-            table.insert(logs, line)
-        end
-    end
-    Window.display_full_screen_message(logs)
+function _99.view_logs()
+    _99_state.__view_log_idx = 1
+    local logs = Logger.logs()
+    Window.display_full_screen_message(logs[1])
+end
+
+function _99.next_request_logs()
+    local logs = Logger.logs()
+    _99_state.__view_log_idx = math.min(_99_state.__view_log_idx + 1, 1)
+    Window.display_full_screen_message(logs[_99_state.__view_log_idx])
+end
+
+function _99.prev_request_logs()
+    local logs = Logger.logs()
+    _99_state.__view_log_idx = math.max(_99_state.__view_log_idx - 1, 1)
+    Window.display_full_screen_message(logs[_99_state.__view_log_idx])
 end
 
 function _99.__debug_ident()
