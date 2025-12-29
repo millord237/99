@@ -12,25 +12,21 @@ end
 --- @field last_access number
 --- @field logs table<string, any>
 
---- @param all_logs table<number, _99.Logger.RequestLogs>
+--- @param all_logs string[][]
 --- @return _99.Test.Logger.RequestLogs
 local function l(all_logs)
     local out = {}
-    for k, request in pairs(all_logs) do
-        out[k] = {
-            last_access = request.last_access,
-            logs = {},
-        }
-
-        for _, log_line in ipairs(request.logs) do
-            table.insert(out[k].logs, vim.json.decode(log_line))
+    for _, logs in ipairs(all_logs) do
+        local lines = {}
+        table.insert(out, lines)
+        for _, log_line in ipairs(logs) do
+            table.insert(lines, vim.json.decode(log_line))
         end
     end
     return out
 end
 
 describe("Logger", function()
-
     after_each(function()
         Logger.reset()
         now = 0
@@ -52,12 +48,9 @@ describe("Logger", function()
         logger:debug("test log")
 
         eq({
-            [69] = {
-                last_access = 0,
-                logs = {
-                    {level = "DEBUG", id = 69, msg = "test log"},
-                },
-            }
+            {
+                { level = "DEBUG", id = 69, msg = "test log" },
+            },
         }, l(Logger.logs()))
 
         local logger2 = logger:set_id(420)
@@ -65,17 +58,11 @@ describe("Logger", function()
         logger2:error("error log")
 
         eq({
-            [69] = {
-                last_access = 0,
-                logs = {
-                    {level = "DEBUG", id = 69, msg = "test log"},
-                },
+            {
+                { level = "ERROR", id = 420, msg = "error log" },
             },
-            [420] = {
-                last_access = 1000,
-                logs = {
-                    {level = "ERROR", id = 420, msg = "error log"},
-                },
+            {
+                { level = "DEBUG", id = 69, msg = "test log" },
             },
         }, l(Logger.logs()))
 
@@ -83,18 +70,12 @@ describe("Logger", function()
         logger:warn("warn log")
 
         eq({
-            [69] = {
-                last_access = 1001,
-                logs = {
-                    {level = "DEBUG", id = 69, msg = "test log"},
-                    {level = "WARN", id = 69, msg = "warn log"},
-                },
+            {
+                { level = "DEBUG", id = 69, msg = "test log" },
+                { level = "WARN", id = 69, msg = "warn log" },
             },
-            [420] = {
-                last_access = 1000,
-                logs = {
-                    {level = "ERROR", id = 420, msg = "error log"},
-                },
+            {
+                { level = "ERROR", id = 420, msg = "error log" },
             },
         }, l(Logger.logs()))
 
@@ -103,21 +84,13 @@ describe("Logger", function()
         logger3:info("info log")
 
         eq({
-            [69] = {
-                last_access = 1001,
-                logs = {
-                    {level = "DEBUG", id = 69, msg = "test log"},
-                    {level = "WARN", id = 69, msg = "warn log"},
-                },
+            {
+                { level = "INFO", id = 1337, msg = "info log" },
             },
-            [1337] = {
-                last_access = 1002,
-                logs = {
-                    {level = "INFO", id = 1337, msg = "info log"},
-                },
+            {
+                { level = "DEBUG", id = 69, msg = "test log" },
+                { level = "WARN", id = 69, msg = "warn log" },
             },
         }, l(Logger.logs()))
-
     end)
-
 end)

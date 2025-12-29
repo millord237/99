@@ -32,11 +32,13 @@ local function tree_root(buffer, lang)
     return tree:root()
 end
 
---- @param buffer number
+--- @param context _99.RequestContext
 --- @param cursor _99.Point
 --- @return _99.treesitter.TSNode | nil
-function M.fn_call(buffer, cursor)
-    local lang = vim.bo[buffer].ft
+function M.fn_call(context, cursor)
+    local buffer = context.buffer
+    local lang = context.file_type
+    local logger = context.logger:set_area("treesitter")
     local root = tree_root(buffer, lang)
     if not root then
         Logger:error(
@@ -51,7 +53,7 @@ function M.fn_call(buffer, cursor)
 
     local ok, query = pcall(vim.treesitter.query.get, lang, fn_call_query)
     if not ok or query == nil then
-        Logger:error(
+        logger:error(
             "unable to get the fn_call_query",
             "lang",
             lang,
@@ -80,7 +82,7 @@ function M.fn_call(buffer, cursor)
     end
     ::end_of_loops::
 
-    Logger:debug("treesitter#fn_call", "found", found ~= nil)
+    logger:debug("treesitter#fn_call", "found", found ~= nil)
 
     return found
 end
@@ -101,22 +103,22 @@ function Function:replace_text(replace_with)
 end
 
 --- @param ts_node _99.treesitter.TSNode
----@param lang string
----@param buffer number
 ---@param cursor _99.Point
+---@param context _99.RequestContext
 ---@return _99.treesitter.Function
-function Function.from_ts_node(ts_node, lang, buffer, cursor)
-    local ok, query = pcall(vim.treesitter.query.get, lang, function_query)
+function Function.from_ts_node(ts_node, cursor, context)
+    local ok, query = pcall(vim.treesitter.query.get, context.file_type, function_query)
+    local logger = context.logger:set_area("Function")
     if not ok or query == nil then
-        Logger:fatal("not query or not ok")
+        logger:fatal("not query or not ok")
         error("failed")
     end
 
     local func = {}
     for id, node, _ in
-        query:iter_captures(ts_node, buffer, 0, -1, { all = true })
+        query:iter_captures(ts_node, context.buffer, 0, -1, { all = true })
     do
-        local range = Range:from_ts_node(node, buffer)
+        local range = Range:from_ts_node(node, context.buffer)
         local name = query.captures[id]
         if range:contains(cursor) then
             if name == "context.function" then
@@ -129,20 +131,21 @@ function Function.from_ts_node(ts_node, lang, buffer, cursor)
         end
     end
 
-    -- Not all functions have bodies, example: function foo() end
-    assert(func.function_node ~= nil, "function_node not found")
-    assert(func.function_range ~= nil, "function_range not found")
+    --- NOTE: not all functions have bodies... (lua: local function foo() end)
+    logger:assert(func.function_node ~= nil, "function_node not found")
+    logger:assert(func.function_range ~= nil, "function_range not found")
 
     return setmetatable(func, Function)
 end
 
---- @param buffer number
---- @param cursor _99.Point
 --- @param context _99.RequestContext
+--- @param cursor _99.Point
 --- @return _99.treesitter.Function?
-function M.containing_function(buffer, cursor, context)
+function M.containing_function(context, cursor)
+    local buffer = context.buffer
+    local lang = context.file_type
     local logger = context and context.logger:set_area("treesitter") or Logger
-    local lang = vim.bo[buffer].ft
+
     local root = tree_root(buffer, lang)
     if not root then
         logger:debug("LSP: could not find tree root")
@@ -165,6 +168,7 @@ function M.containing_function(buffer, cursor, context)
 
     --- @type _99.Range
     local found_range = nil
+    --- @type _99.treesitter.TSNode
     local found_node = nil
     for id, node, _ in query:iter_captures(root, buffer, 0, -1, { all = true }) do
         local range = Range:from_ts_node(node, buffer)
@@ -189,7 +193,7 @@ function M.containing_function(buffer, cursor, context)
     if not found_range then
         return nil
     end
-    assert(found_node, "INVARIANT: found_range is not nil but found node is")
+    logger:assert(found_node, "INVARIANT: found_range is not nil but found node is")
 
     ok, query = pcall(vim.treesitter.query.get, lang, function_query)
     if not ok or query == nil then
@@ -199,12 +203,13 @@ function M.containing_function(buffer, cursor, context)
 
     --- TODO: we need some language specific things here.
     --- that is because comments above the function needs to considered
-    return Function.from_ts_node(found_node, lang, buffer, cursor)
+    return Function.from_ts_node(found_node, cursor, context)
 end
 
 --- @param buffer number
 --- @return _99.treesitter.Node[]
 function M.imports(buffer)
+    Logger:assert(false, "not implemented yet", "id", 69420)
     local lang = vim.bo[buffer].ft
     local root = tree_root(buffer, lang)
     if not root then

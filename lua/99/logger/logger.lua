@@ -4,6 +4,7 @@ local MAX_REQUEST_DEFAULT = 5
 
 --- @type table<number, _99.Logger.RequestLogs>
 local logger_cache = {}
+local logger_list = {}
 local max_requests_in_logger_cache = MAX_REQUEST_DEFAULT
 
 --- @class _99.Logger.Options
@@ -12,6 +13,8 @@ local max_requests_in_logger_cache = MAX_REQUEST_DEFAULT
 --- @field print_on_error? boolean
 --- @field max_requests_cached? number
 
+--- @param ... any
+--- @return table<string, any>
 local function to_args(...)
     local count = select("#", ...)
     local out = {}
@@ -220,10 +223,18 @@ function Logger:_cache_log(line)
             logs = {},
         }
         logger_cache[id] = cache
+        table.insert(logger_list, id)
         new_cache = true
     end
     cache.last_access = time.now()
     table.insert(cache.logs, line)
+
+    logger_list = vim.fn.sort(logger_list, function(a, b)
+        assert(logger_cache[a] and logger_cache[b], "logger list is out of sync with logger cache: " .. tostring(a) .. " and " .. tostring(b))
+        local a_time = logger_cache[a].last_access
+        local b_time = logger_cache[b].last_access
+        return b_time - a_time
+    end)
 
     if not new_cache then
         return
@@ -239,17 +250,24 @@ function Logger.reset()
     max_requests_in_logger_cache = MAX_REQUEST_DEFAULT
 end
 
---- @return table<number, _99.Logger.RequestLogs>
+--- @return string[][]
 function Logger.logs()
-    return logger_cache
+    local out = {}
+    for _, id in ipairs(logger_list) do
+        local request_logs = logger_cache[id]
+        table.insert(out, request_logs.logs)
+    end
+    return out
 end
 
+--- @param level number
+---@param msg string
+---@param ... any
 function Logger:_log(level, msg, ...)
     if self.level > level then
         return
     end
 
-    assert(self.extra_params["id"], "every log must have an id associated with it")
     local log_statement = {
         level = levels.levelToString(level),
         msg = msg,
@@ -257,6 +275,9 @@ function Logger:_log(level, msg, ...)
 
     put_args(log_statement, to_args(...))
     put_args(log_statement, self.extra_params)
+
+    assert(log_statement["id"], "every log must have an id associated with it")
+
     local json_string = vim.json.encode(log_statement)
     if self.print_on_error and level == levels.ERROR then
         print(json_string)
@@ -299,7 +320,7 @@ end
 
 --- @param test any
 ---@param msg string
----@param ... any[]
+---@param ... any
 function Logger:assert(test, msg, ...)
     if not test then
         self:fatal(msg, ...)
@@ -321,6 +342,13 @@ function Logger._trim_cache()
     if count > max_requests_in_logger_cache then
         assert(oldest_key, "oldest key must exist")
         logger_cache[oldest_key] = nil
+
+        for i, id in ipairs(logger_list) do
+            if id == oldest_key then
+                table.remove(logger_list, i)
+                break
+            end
+        end
     end
 end
 

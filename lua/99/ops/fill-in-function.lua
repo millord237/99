@@ -22,13 +22,14 @@ local function update_file_with_changes(context, res)
 
     local func_start = Point.from_mark(mark)
     local ts = editor.treesitter
-    local func = ts.containing_function(buffer, func_start, context)
+    local func = ts.containing_function(context, func_start)
 
     logger:assert(func, "update_file_with_changes: unable to find function at mark location")
 
     local lines = vim.split(res, "\n")
 
     -- lua docs ignore next error, func being tested already in assert
+    -- TODO: fix this?
     func:replace_text(lines)
 end
 
@@ -38,7 +39,7 @@ local function fill_in_function(context)
     local ts = editor.treesitter
     local buffer = vim.api.nvim_get_current_buf()
     local cursor = Point:from_cursor()
-    local func = ts.containing_function(buffer, cursor)
+    local func = ts.containing_function(context, cursor)
 
     if not func then
         logger:fatal("fill_in_function: unable to find any containing function")
