@@ -19,7 +19,15 @@ function Mark.mark_above_range(range)
     local start = range.start
     local line, _ = start:to_vim()
     local above = line == 0 and line or line - 1
-    local id = vim.api.nvim_buf_set_extmark(buffer, nsid, above, 0, {})
+
+    local id = nil
+    if above == line then
+        id = vim.api.nvim_buf_set_extmark(buffer, nsid, above, 0, {})
+    else
+        local text = vim.api.nvim_buf_get_lines(buffer, above, above + 1, false)[1]
+        local ending = #text
+        id = vim.api.nvim_buf_set_extmark(buffer, nsid, above, ending, {})
+    end
 
     return setmetatable({
         id = id,

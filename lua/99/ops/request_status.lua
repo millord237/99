@@ -33,14 +33,14 @@ end
 --- @field lines string[]
 --- @field max_lines number
 --- @field running boolean
---- @field mark _99.Mark?
+--- @field mark _99.Mark
 local RequestStatus = {}
 RequestStatus.__index = RequestStatus
 
 --- @param update_time number
 --- @param max_lines number
 --- @param title_line string
---- @param mark _99.Mark?
+--- @param mark _99.Mark
 --- @return _99.RequestStatus
 function RequestStatus.new(update_time, max_lines, title_line, mark)
     local self = setmetatable({}, RequestStatus)
@@ -77,9 +77,7 @@ function RequestStatus:start()
         end
 
         self.status_line:update()
-        if self.mark then
-            self.mark:set_virtual_text(self:get())
-        end
+        self.mark:set_virtual_text(self:get())
         vim.defer_fn(update_spinner, self.update_time)
     end
 

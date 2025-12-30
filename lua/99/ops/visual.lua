@@ -12,15 +12,16 @@ local function visual(context, range)
     local logger = context.logger:set_area("visual")
 
     local request = Request.new(context)
-    local top_mark, bottom_mark = Mark.mark_range(range)
+    local top_mark = Mark.mark_above_range(range)
+    local bottom_mark = Mark.mark_point(range.buffer, range.end_)
     context.marks.top_mark = top_mark
     context.marks.bottom_mark = bottom_mark
 
     logger:debug("visual request start", "start", Point.from_mark(top_mark), "end", Point.from_mark(bottom_mark))
 
     local display_ai_status = context._99.ai_stdout_rows > 1
-    local top_status = RequestStatus.new(250, context._99.ai_stdout_rows or 1, "Implementing...")
-    local bottom_status = RequestStatus.new(250, 1, "Implementing...")
+    local top_status = RequestStatus.new(250, context._99.ai_stdout_rows or 1, "Implementing...", top_mark)
+    local bottom_status = RequestStatus.new(250, 1, "Implementing...", bottom_mark)
 
     local clean_up = make_clean_up(context, function()
         top_status:stop()
@@ -44,8 +45,15 @@ local function visual(context, range)
                 if not valid then
                     logger:fatal("the original visual_selection has been destroyed.  You cannot delete the original visual selection during a request")
                 end
+
                 local new_range = Range.from_marks(top_mark, bottom_mark)
                 local lines = vim.split(response, "\n")
+
+                --- HACK: i am adding a new line here because above range will add a mark to the line above.
+                --- that way this appears to be added to "the same line" as the visual selection was
+                --- originally take from
+                table.insert(lines, 1, "")
+
                 new_range:replace_text(lines)
             end
         end,

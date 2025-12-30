@@ -104,8 +104,8 @@ local _99 = {
     FATAL = Level.FATAL,
 }
 
-local function reselect()
-    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>gv", true, false, true), "x", false)
+local function set_selection_marks()
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
 end
 
 --- @param operation_name string
@@ -129,7 +129,7 @@ function _99.visual()
     ---
     --- Therefore i did something so very cursed.  escape sets the mark, gv sets
     --- the previous visual selection.  super cursed
-    reselect()
+    set_selection_marks()
 
     local context = get_context("visual")
     local range = Range.from_visual_selection()
