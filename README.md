@@ -3,6 +3,8 @@ This is an example repo where i want to test what i think the ideal AI workflow
 is for people who dont have "skill issues."  This is meant to streamline the requests to AI and limit them it restricted areas.  For more general requests, please just use opencode.  Dont use neovim.
 
 ## How to use
+**you must have opencode installed and setup**
+
 Add the following configuration to your neovim startuource /home/theprimeagen/.tmux-sessionizer
 
 I make the assumption you are using Lazy
