@@ -10,7 +10,7 @@ is for people who dont have "skill issues."  This is meant to streamline the req
 ## How to use
 **you must have opencode installed and setup**
 
-Add the following configuration to your neovim startuource /home/theprimeagen/.tmux-sessionizer
+Add the following configuration to your neovim config
 
 I make the assumption you are using Lazy
 ```lua
