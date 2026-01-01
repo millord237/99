@@ -24,7 +24,8 @@ function Mark.mark_above_range(range)
     if above == line then
         id = vim.api.nvim_buf_set_extmark(buffer, nsid, above, 0, {})
     else
-        local text = vim.api.nvim_buf_get_lines(buffer, above, above + 1, false)[1]
+        local text =
+            vim.api.nvim_buf_get_lines(buffer, above, above + 1, false)[1]
         local ending = #text
         id = vim.api.nvim_buf_set_extmark(buffer, nsid, above, ending, {})
     end
@@ -41,12 +42,14 @@ end
 --- @return _99.Mark
 function Mark.mark_range(range)
     local buffer = range.buffer
-    return Mark.mark_point(buffer, range.start), Mark.mark_point(buffer, range.end_)
+    return Mark.mark_point(buffer, range.start),
+        Mark.mark_point(buffer, range.end_)
 end
 
 --- @return boolean
 function Mark:is_valid()
-    local pos = vim.api.nvim_buf_get_extmark_by_id(self.buffer, self.nsid, self.id, {})
+    local pos =
+        vim.api.nvim_buf_get_extmark_by_id(self.buffer, self.nsid, self.id, {})
     return #pos > 0
 end
 

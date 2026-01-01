@@ -7,7 +7,7 @@ function M.log_item(item_name)
 end
 
 M.names = {
-    body = "body"
+    body = "body",
 }
 
 return M

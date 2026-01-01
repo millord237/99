@@ -186,8 +186,7 @@ function Point.from_mark(mark)
 end
 
 --- @return _99.Point
-function Point.from_visual_start()
-end
+function Point.from_visual_start() end
 
 --- @return _99.Point
 function Point.from_visual_end()
@@ -224,8 +223,10 @@ function Range.from_visual_selection()
     --- which will cause marks to fail. so we have to correct it to the literal
     --- row length
     local end_r, _ = end_:to_vim()
-    local end_line = vim.api.nvim_buf_get_lines(buffer, end_r, end_r + 1, false)[1]
-    local actual_end = Point:new(end_pos[2], math.min(end_pos[3], #end_line + 1))
+    local end_line =
+        vim.api.nvim_buf_get_lines(buffer, end_r, end_r + 1, false)[1]
+    local actual_end =
+        Point:new(end_pos[2], math.min(end_pos[3], #end_line + 1))
 
     return Range:new(buffer, start, actual_end)
 end
@@ -259,7 +260,14 @@ end
 function Range:replace_text(replace_with)
     local s_row, s_col = self.start:to_vim()
     local e_row, e_col = self.end_:to_vim()
-    vim.api.nvim_buf_set_text(self.buffer, s_row, s_col, e_row, e_col, replace_with)
+    vim.api.nvim_buf_set_text(
+        self.buffer,
+        s_row,
+        s_col,
+        e_row,
+        e_col,
+        replace_with
+    )
 end
 
 --- @param point _99.Point

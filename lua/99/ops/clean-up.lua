@@ -17,4 +17,3 @@ return function(context, clean_up_fn)
 
     return clean_up
 end
-

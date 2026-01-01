@@ -76,7 +76,11 @@ describe("Range", function()
         vim.api.nvim_feedkeys("V", "x", false)
 
         test_utils.next_frame()
-        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>gv", true, false, true), "x", false)
+        vim.api.nvim_feedkeys(
+            vim.api.nvim_replace_termcodes("<Esc>gv", true, false, true),
+            "x",
+            false
+        )
 
         local range = Range.from_visual_selection()
         local text = range:to_text()

@@ -12,7 +12,8 @@ local make_clean_up = require("99.ops.clean-up")
 local function update_file_with_changes(context, res)
     local buffer = context.buffer
     local mark = context.marks.function_location
-    local logger = context.logger:set_area("fill_in_function#update_file_with_changes")
+    local logger =
+        context.logger:set_area("fill_in_function#update_file_with_changes")
 
     logger:assert(
         mark and buffer,
@@ -24,7 +25,10 @@ local function update_file_with_changes(context, res)
     local ts = editor.treesitter
     local func = ts.containing_function(context, func_start)
 
-    logger:assert(func, "update_file_with_changes: unable to find function at mark location")
+    logger:assert(
+        func,
+        "update_file_with_changes: unable to find function at mark location"
+    )
 
     local lines = vim.split(res, "\n")
 

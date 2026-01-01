@@ -47,58 +47,69 @@ function OpenCodeProvider:make_request(query, request, observer)
 
     local command = { "opencode", "run", "-m", request.context.model, query }
     logger:debug("make_request", "command", command)
-    vim.system(command, {
-        text = true,
-        stdout = vim.schedule_wrap(function(err, data)
-            logger:debug("stdout", "data", data)
+    vim.system(
+        command,
+        {
+            text = true,
+            stdout = vim.schedule_wrap(function(err, data)
+                logger:debug("stdout", "data", data)
+                if request:is_cancelled() then
+                    once_complete("cancelled", "")
+                    return
+                end
+                if err and err ~= "" then
+                    logger:debug("stdout#error", "err", err)
+                end
+                if not err then
+                    observer.on_stdout(data)
+                end
+            end),
+            stderr = vim.schedule_wrap(function(err, data)
+                logger:debug("stderr", "data", data)
+                if request:is_cancelled() then
+                    once_complete("cancelled", "")
+                    return
+                end
+                if err and err ~= "" then
+                    logger:debug("stderr#error", "err", err)
+                end
+                if not err then
+                    observer.on_stderr(data)
+                end
+            end),
+        },
+        vim.schedule_wrap(function(obj)
             if request:is_cancelled() then
                 once_complete("cancelled", "")
+                logger:debug("on_complete: request has been cancelled")
                 return
             end
-            if err and err ~= "" then
-                logger:debug("stdout#error", "err", err)
+            if obj.code ~= 0 then
+                local str = string.format(
+                    "process exit code: %d\n%s",
+                    obj.code,
+                    vim.inspect(obj)
+                )
+                once_complete("failed", str)
+                logger:fatal(
+                    "opencode make_query failed",
+                    "obj from results",
+                    obj
+                )
             end
-            if not err then
-                observer.on_stdout(data)
-            end
-        end),
-        stderr = vim.schedule_wrap(function(err, data)
-            logger:debug("stderr", "data", data)
-            if request:is_cancelled() then
-                once_complete("cancelled", "")
-                return
-            end
-            if err and err ~= "" then
-                logger:debug("stderr#error", "err", err)
-            end
-            if not err then
-                observer.on_stderr(data)
-            end
-        end),
-    }, vim.schedule_wrap(function(obj)
-        if request:is_cancelled() then
-            once_complete("cancelled", "")
-            logger:debug("on_complete: request has been cancelled")
-            return
-        end
-        if obj.code ~= 0 then
-            local str = string.format(
-                "process exit code: %d\n%s",
-                obj.code,
-                vim.inspect(obj)
-            )
-            once_complete("failed", str)
-            logger:fatal("opencode make_query failed", "obj from results", obj)
-        end
-        vim.schedule(function()
-            local ok, res = OpenCodeProvider._retrieve_response(request)
-            if ok then
-                once_complete("success", res)
-            else
-                once_complete("failed", "unable to retrieve response from llm")
-            end
+            vim.schedule(function()
+                local ok, res = OpenCodeProvider._retrieve_response(request)
+                if ok then
+                    once_complete("success", res)
+                else
+                    once_complete(
+                        "failed",
+                        "unable to retrieve response from llm"
+                    )
+                end
+            end)
         end)
-    end))
+    )
 end
 
 --- @param request _99.Request

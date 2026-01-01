@@ -107,7 +107,8 @@ end
 ---@param context _99.RequestContext
 ---@return _99.treesitter.Function
 function Function.from_ts_node(ts_node, cursor, context)
-    local ok, query = pcall(vim.treesitter.query.get, context.file_type, function_query)
+    local ok, query =
+        pcall(vim.treesitter.query.get, context.file_type, function_query)
     local logger = context.logger:set_area("Function")
     if not ok or query == nil then
         logger:fatal("not query or not ok")
@@ -193,7 +194,10 @@ function M.containing_function(context, cursor)
     if not found_range then
         return nil
     end
-    logger:assert(found_node, "INVARIANT: found_range is not nil but found node is")
+    logger:assert(
+        found_node,
+        "INVARIANT: found_range is not nil but found node is"
+    )
 
     ok, query = pcall(vim.treesitter.query.get, lang, function_query)
     if not ok or query == nil then

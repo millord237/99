@@ -205,7 +205,8 @@ function Logger:configure(opts)
         self:on_error_print_message()
     end
 
-    max_requests_in_logger_cache = opts.max_requests_cached or MAX_REQUEST_DEFAULT
+    max_requests_in_logger_cache = opts.max_requests_cached
+        or MAX_REQUEST_DEFAULT
 end
 
 --- @param line string
@@ -229,7 +230,13 @@ function Logger:_cache_log(line)
     cache.last_access = time.now()
     table.insert(cache.logs, line)
     table.sort(logger_list, function(a, b)
-        assert(logger_cache[a] and logger_cache[b], "logger list is out of sync with logger cache: " .. tostring(a) .. " and " .. tostring(b))
+        assert(
+            logger_cache[a] and logger_cache[b],
+            "logger list is out of sync with logger cache: "
+                .. tostring(a)
+                .. " and "
+                .. tostring(b)
+        )
         local a_time = logger_cache[a].last_access
         local b_time = logger_cache[b].last_access
         return b_time > a_time

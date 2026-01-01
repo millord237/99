@@ -49,7 +49,8 @@ describe("visual", function()
         local state = _99.__get_state()
         local visual_fn = require("99.ops.visual")
 
-        local context = require("99.request-context").from_current_buffer(state, 100)
+        local context =
+            require("99.request-context").from_current_buffer(state, 100)
         visual_fn(context, range)
 
         eq(1, state:active_request_count())
@@ -79,13 +80,17 @@ describe("visual", function()
         local state = _99.__get_state()
         local visual_fn = require("99.ops.visual")
 
-        local context = require("99.request-context").from_current_buffer(state, 200)
+        local context =
+            require("99.request-context").from_current_buffer(state, 200)
         visual_fn(context, range)
 
         eq(1, state:active_request_count())
         eq(multi_line_content, r(buffer))
 
-        p:resolve("success", "    local x = 1\n    local y = 2\n    return x + y")
+        p:resolve(
+            "success",
+            "    local x = 1\n    local y = 2\n    return x + y"
+        )
         test_utils.next_frame()
 
         local expected_state = {
@@ -103,7 +108,8 @@ describe("visual", function()
         local p, buffer, range = setup(content, 2, 1, 2, 23)
         local visual_fn = require("99.ops.visual")
         local state = _99.__get_state()
-        local context = require("99.request-context").from_current_buffer(state, 300)
+        local context =
+            require("99.request-context").from_current_buffer(state, 300)
 
         visual_fn(context, range)
 
@@ -129,7 +135,8 @@ describe("visual", function()
         local p, buffer, range = setup(content, 2, 1, 2, 23)
         local visual_fn = require("99.ops.visual")
         local state = _99.__get_state()
-        local context = require("99.request-context").from_current_buffer(state, 400)
+        local context =
+            require("99.request-context").from_current_buffer(state, 400)
 
         visual_fn(context, range)
 
@@ -146,7 +153,8 @@ describe("visual", function()
         local p, buffer, range = setup(content, 2, 1, 2, 23)
         local visual_fn = require("99.ops.visual")
         local state = _99.__get_state()
-        local context = require("99.request-context").from_current_buffer(state, 500)
+        local context =
+            require("99.request-context").from_current_buffer(state, 500)
 
         visual_fn(context, range)
 

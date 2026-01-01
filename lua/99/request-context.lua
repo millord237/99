@@ -64,7 +64,11 @@ function RequestContext:_read_md_files()
             if file then
                 local content = file:read("*a")
                 file:close()
-                self.logger:info("Context#adding md file to the context", "md_path", md_path)
+                self.logger:info(
+                    "Context#adding md file to the context",
+                    "md_path",
+                    md_path
+                )
                 table.insert(self.ai_context, content)
             end
         end
@@ -87,9 +91,15 @@ function RequestContext:finalize()
     self:_read_md_files()
     if self.range then
         table.insert(self.ai_context, self._99.prompts.get_file_location(self))
-        table.insert(self.ai_context, self._99.prompts.get_range_text(self.range))
+        table.insert(
+            self.ai_context,
+            self._99.prompts.get_range_text(self.range)
+        )
     end
-    table.insert(self.ai_context, self._99.prompts.tmp_file_location(self.tmp_file))
+    table.insert(
+        self.ai_context,
+        self._99.prompts.tmp_file_location(self.tmp_file)
+    )
     return self
 end
 

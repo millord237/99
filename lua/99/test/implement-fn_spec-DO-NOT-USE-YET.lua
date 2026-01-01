@@ -1,4 +1,4 @@
- -- luacheck: globals describe it assert
+-- luacheck: globals describe it assert
 local _99 = require("99")
 local test_utils = require("99.test.test_utils")
 local eq = assert.are.same

@@ -17,11 +17,23 @@ local function visual(context, range)
     context.marks.top_mark = top_mark
     context.marks.bottom_mark = bottom_mark
 
-    logger:debug("visual request start", "start", Point.from_mark(top_mark), "end", Point.from_mark(bottom_mark))
+    logger:debug(
+        "visual request start",
+        "start",
+        Point.from_mark(top_mark),
+        "end",
+        Point.from_mark(bottom_mark)
+    )
 
     local display_ai_status = context._99.ai_stdout_rows > 1
-    local top_status = RequestStatus.new(250, context._99.ai_stdout_rows or 1, "Implementing...", top_mark)
-    local bottom_status = RequestStatus.new(250, 1, "Implementing...", bottom_mark)
+    local top_status = RequestStatus.new(
+        250,
+        context._99.ai_stdout_rows or 1,
+        "Implementing...",
+        top_mark
+    )
+    local bottom_status =
+        RequestStatus.new(250, 1, "Implementing...", bottom_mark)
 
     local clean_up = make_clean_up(context, function()
         top_status:stop()
@@ -30,20 +42,30 @@ local function visual(context, range)
         request:cancel()
     end)
 
-    request:add_prompt_content(context._99.prompts.prompts.visual_selection(range))
+    request:add_prompt_content(
+        context._99.prompts.prompts.visual_selection(range)
+    )
     top_status:start()
     bottom_status:start()
     request:start({
         on_complete = function(status, response)
             vim.schedule(clean_up)
             if status == "cancelled" then
-                logger:debug("request cancelled for visual selection, removing marks")
+                logger:debug(
+                    "request cancelled for visual selection, removing marks"
+                )
             elseif status == "failed" then
-                logger:error("request failed for visual_selection", "error response", response or "no response provided")
+                logger:error(
+                    "request failed for visual_selection",
+                    "error response",
+                    response or "no response provided"
+                )
             elseif status == "success" then
                 local valid = top_mark:is_valid() and bottom_mark:is_valid()
                 if not valid then
-                    logger:fatal("the original visual_selection has been destroyed.  You cannot delete the original visual selection during a request")
+                    logger:fatal(
+                        "the original visual_selection has been destroyed.  You cannot delete the original visual selection during a request"
+                    )
                 end
 
                 local new_range = Range.from_marks(top_mark, bottom_mark)
@@ -64,7 +86,7 @@ local function visual(context, range)
         end,
         on_stderr = function(line)
             logger:debug("visual_selection#on_stderr received", "line", line)
-        end
+        end,
     })
 end
 
