@@ -105,7 +105,11 @@ local _99 = {
 }
 
 local function set_selection_marks()
-    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
+    vim.api.nvim_feedkeys(
+        vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
+        "x",
+        false
+    )
 end
 
 --- @param operation_name string
@@ -115,6 +119,28 @@ local function get_context(operation_name)
     local context = RequestContext.from_current_buffer(_99_state, trace_id)
     context.logger:debug("99 Request", "method", operation_name)
     return context
+end
+
+function _99.info()
+    local info = {}
+    table.insert(
+        info,
+        string.format("Agent Files: %s", table.concat(_99_state.md_files, ", "))
+    )
+    table.insert(info, string.format("Model: %s", _99_state.model))
+    table.insert(
+        info,
+        string.format("AI Stdout Rows: %d", _99_state.ai_stdout_rows)
+    )
+    table.insert(
+        info,
+        string.format("Display Errors: %s", tostring(_99_state.display_errors))
+    )
+    table.insert(
+        info,
+        string.format("Active Requests: %d", _99_state:active_request_count())
+    )
+    Window.display_centered_message(info)
 end
 
 function _99.fill_in_function()

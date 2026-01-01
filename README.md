@@ -122,3 +122,7 @@ context.  I think that treesitter + lsp could be really powerful.  I am going
 to experiment with this more once i get access to the FIM models.  This could
 make the time to completion less than a couple seconds, which would be
 incredible
+
+* every now and then the replacement seems to get jacked up and it screws up
+what i am currently editing..  I think it may have something to do with auto-complete
+  * definitely not suure on this one
