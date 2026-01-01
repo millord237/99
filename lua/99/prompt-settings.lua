@@ -46,6 +46,7 @@ consider the context of the selection and what you are suppose to be implementin
             get_file_contents(range.buffer)
         )
     end,
+    -- luacheck: ignore 631
     read_tmp = "never attempt to read TEMP_FILE.  It is purely for output.  Previous contents, which may not exist, can be written over without worry",
 }
 

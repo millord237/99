@@ -29,19 +29,18 @@ local function get_lsp_definitions(buffer, position, cb)
     local params = vim.lsp.util.make_position_params()
     params.position = position
 
-    --- @param result LspDefinitionResult[] | nil
     vim.lsp.buf_request(
         buffer,
         "textDocument/definition",
         params,
-        function(_, result, ctx, _)
+        function(_, result, _, _)
             cb(result)
         end
     )
 end
 
 --- @class Lsp
---- @field config 99.Options
+--- @field config _99.Options
 local Lsp = {}
 Lsp.__index = Lsp
 
@@ -54,7 +53,7 @@ end
 --- @param buffer number
 --- @param node _99.treesitter.Node[]
 --- @param cb fun(res: LspDefinitionResult | nil): nil
-function Lsp:get_ts_node_definition(buffer, node, cb)
+function Lsp.get_ts_node_definition(buffer, node, cb)
     local range = ts_node_to_lsp_position(node)
     get_lsp_definitions(buffer, range, cb)
 end
@@ -103,7 +102,7 @@ function Lsp:batch_get_ts_node_definitions(buffer, nodes, cb)
 
     local definitions = {}
     for index, node in ipairs(nodes) do
-        self:get_ts_node_definition(buffer, node, function(def)
+        Lsp.get_ts_node_definition(buffer, node, function(def)
             if def == nil or #def == 0 then
                 def = {}
             end

@@ -64,8 +64,10 @@ local function visual(context, range)
                 local valid = top_mark:is_valid() and bottom_mark:is_valid()
                 if not valid then
                     logger:fatal(
+                        -- luacheck: ignore 631
                         "the original visual_selection has been destroyed.  You cannot delete the original visual selection during a request"
                     )
+                    return
                 end
 
                 local new_range = Range.from_marks(top_mark, bottom_mark)

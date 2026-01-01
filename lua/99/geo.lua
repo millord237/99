@@ -41,11 +41,6 @@ function Point:update_to_end_of_line()
     vim.api.nvim_win_set_cursor(0, { r, c })
 end
 
---- @param buffer number
-function Point:insert_new_line_below(buffer)
-    vim.api.nvim_input("<esc>o")
-end
-
 --- 1 based point
 --- @param row number
 --- @param col number

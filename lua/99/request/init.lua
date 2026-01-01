@@ -35,6 +35,7 @@ end
 ---@param request _99.Request
 ---@param observer _99.ProviderObserver?
 function OpenCodeProvider:make_request(query, request, observer)
+    _ = self
     local logger = request.logger:set_area("OpenCodeProvider")
     logger:debug("make_request", "tmp_file", request.context.tmp_file)
 

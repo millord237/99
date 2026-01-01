@@ -20,6 +20,7 @@ function Mark.mark_above_range(range)
     local line, _ = start:to_vim()
     local above = line == 0 and line or line - 1
 
+    -- luacheck: ignore
     local id = nil
     if above == line then
         id = vim.api.nvim_buf_set_extmark(buffer, nsid, above, 0, {})

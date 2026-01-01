@@ -52,8 +52,11 @@ function VoidSink.new()
     return setmetatable({}, VoidSink)
 end
 
+
 --- @param _ string
-function VoidSink:write_line(_) end
+function VoidSink:write_line(_)
+    _ = self
+end
 
 --- @class FileSink : LoggerSink
 --- @field fd number
