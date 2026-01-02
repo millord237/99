@@ -8,7 +8,8 @@ local make_clean_up = require("99.ops.clean-up")
 
 --- @param context _99.RequestContext
 --- @param range _99.Range
-local function visual(context, range)
+--- @param prompt string?
+local function over_range(context, range, prompt)
     local logger = context.logger:set_area("visual")
 
     local request = Request.new(context)
@@ -29,12 +30,10 @@ local function visual(context, range)
     local top_status = RequestStatus.new(
         250,
         context._99.ai_stdout_rows or 1,
-        "Implementing...",
+        "Implementing",
         top_mark
     )
-    local bottom_status =
-        RequestStatus.new(250, 1, "Implementing...", bottom_mark)
-
+    local bottom_status = RequestStatus.new(250, 1, "Implementing", bottom_mark)
     local clean_up = make_clean_up(context, function()
         top_status:stop()
         bottom_status:stop()
@@ -42,9 +41,12 @@ local function visual(context, range)
         request:cancel()
     end)
 
-    request:add_prompt_content(
-        context._99.prompts.prompts.visual_selection(range)
-    )
+    local full_prompt = context._99.prompts.prompts.visual_selection(range)
+    if prompt then
+        full_prompt = context._99.prompts.prompts.prompt(prompt, full_prompt)
+    end
+
+    request:add_prompt_content(full_prompt)
     top_status:start()
     bottom_status:start()
     request:start({
@@ -92,4 +94,4 @@ local function visual(context, range)
     })
 end
 
-return visual
+return over_range

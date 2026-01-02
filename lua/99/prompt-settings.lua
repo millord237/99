@@ -25,6 +25,17 @@ never provide the requested changes as conversational output.
 ONLY provide requested changes by writing the change to TEMP_FILE
 ]]
     end,
+    --- @param prompt string
+    --- @param action string
+    --- @return string
+    prompt = function(prompt, action)
+        return string.format([[
+%s
+<Context>
+%s
+</Context>
+]], prompt, action)
+    end,
     visual_selection = function(range)
         return string.format(
             [[

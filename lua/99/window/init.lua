@@ -202,6 +202,15 @@ function M.display_full_screen_message(lines)
     vim.api.nvim_buf_set_lines(window.buf_id, 0, -1, false, display_lines)
 end
 
+--- @return _99.window.Window
+--- @return _99.window.Config
+function M.create_centered_window()
+    M.clear_active_popups()
+    local config = create_centered_window()
+    local window = create_floating_window(config)
+    return window, config
+end
+
 --- @param message string[]
 function M.display_centered_message(message)
     M.clear_active_popups()

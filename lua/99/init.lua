@@ -104,6 +104,46 @@ local _99 = {
     FATAL = Level.FATAL,
 }
 
+--- @param cb fun(success: boolean, result: string): nil
+local function capture_prompt(cb)
+    local win = Window.create_centered_window()
+
+    vim.bo[win.buf_id].buftype = "acwrite"
+    vim.bo[win.buf_id].bufhidden = "wipe"
+
+    local group = vim.api.nvim_create_augroup(
+        "99_present_prompt_" .. win.buf_id,
+        { clear = true }
+    )
+
+    vim.api.nvim_create_autocmd("BufWriteCmd", {
+        group = group,
+        buffer = win.buf_id,
+        callback = function()
+            local lines = vim.api.nvim_buf_get_lines(win.buf_id, 0, -1, false)
+            local result = table.concat(lines, "\n")
+            vim.api.nvim_win_close(win.win_id, true)
+            vim.api.nvim_buf_delete(win.buf_id, { force = true })
+            cb(true, result)
+        end,
+    })
+
+    vim.api.nvim_create_autocmd("BufUnload", {
+        group = group,
+        buffer = win.buf_id,
+        callback = function()
+            vim.api.nvim_del_augroup_by_id(group)
+        end,
+    })
+
+    vim.keymap.set("n", "q", function()
+        vim.api.nvim_win_close(win.win_id, true)
+        vim.api.nvim_buf_delete(win.buf_id, { force = true })
+        cb(false, "")
+    end, { buffer = win.buf_id, nowait = true })
+end
+
+--- you can only set those marks after the visual selection is removed
 local function set_selection_marks()
     vim.api.nvim_feedkeys(
         vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
@@ -147,19 +187,34 @@ function _99.fill_in_function()
     ops.fill_in_function(get_context("fill_in_function"))
 end
 
-function _99.visual()
+function fizz_buzz(count)
+    for i = 1, count do
+    end
+end
+
+function _99.visual_prompt()
+    local context = get_context("over-range-with-prompt")
+    context.logger:debug("start")
+    capture_prompt(function(success, response)
+        context.logger:debug("capture_prompt", "success", success, "response", response)
+        if success then
+            _99.visual(response)
+        end
+    end)
+end
+
+--- @param prompt string?
+--- @param context _99.RequestContext?
+function _99.visual(prompt, context)
     --- TODO: Talk to teej about this.
     --- Visual selection marks are only set in place post visual selection.
     --- that means for this function to work i must escape out of visual mode
     --- which i dislike very much.  because maybe you dont want this
-    ---
-    --- Therefore i did something so very cursed.  escape sets the mark, gv sets
-    --- the previous visual selection.  super cursed
     set_selection_marks()
 
-    local context = get_context("visual")
+    context = context or get_context("over-range")
     local range = Range.from_visual_selection()
-    ops.visual(context, range)
+    ops.over_range(context, range, prompt)
 end
 
 --- View all the logs that are currently cached.  Cached log count is determined
