@@ -223,6 +223,52 @@ function M.display_centered_message(message)
     return window
 end
 
+--- @param cb fun(success: boolean, result: string): nil
+--- @param opts {}
+function M.capture_input(cb, opts)
+    opts = opts
+
+    --- TODO: styling should be extendable
+    local win = M.create_centered_window()
+
+    vim.api.nvim_buf_set_name(win.buf_id, "99-prompt")
+    vim.wo[win.win_id].number = true
+    vim.bo[win.buf_id].filetype = "99"
+    vim.bo[win.buf_id].buftype = "acwrite"
+    vim.bo[win.buf_id].bufhidden = "wipe"
+    vim.bo[win.buf_id].swapfile = false
+
+    local group = vim.api.nvim_create_augroup(
+        "99_present_prompt_" .. win.buf_id,
+        { clear = true }
+    )
+
+    vim.api.nvim_create_autocmd("BufWriteCmd", {
+        group = group,
+        buffer = win.buf_id,
+        callback = function()
+            local lines = vim.api.nvim_buf_get_lines(win.buf_id, 0, -1, false)
+            local result = table.concat(lines, "\n")
+            M.clear_active_popups()
+            cb(true, result)
+        end,
+    })
+
+    vim.api.nvim_create_autocmd("BufUnload", {
+        group = group,
+        buffer = win.buf_id,
+        callback = function()
+            vim.api.nvim_del_augroup_by_id(group)
+        end,
+    })
+
+    vim.keymap.set("n", "q", function()
+        M.clear_active_popups()
+        cb(false, "")
+    end, { buffer = win.buf_id, nowait = true })
+end
+
+
 --- not worried about perf, we will likely only ever have 1 maybe 2 windows
 --- ever open at the same time
 function M.clear_active_popups()
