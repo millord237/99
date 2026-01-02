@@ -29,12 +29,16 @@ ONLY provide requested changes by writing the change to TEMP_FILE
     --- @param action string
     --- @return string
     prompt = function(prompt, action)
-        return string.format([[
+        return string.format(
+            [[
 %s
 <Context>
 %s
 </Context>
-]], prompt, action)
+]],
+            prompt,
+            action
+        )
     end,
     visual_selection = function(range)
         return string.format(

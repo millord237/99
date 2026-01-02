@@ -226,7 +226,7 @@ end
 --- @param cb fun(success: boolean, result: string): nil
 --- @param opts {}
 function M.capture_input(cb, opts)
-    opts = opts
+    _ = opts
 
     --- TODO: styling should be extendable
     local win = M.create_centered_window()
@@ -267,7 +267,6 @@ function M.capture_input(cb, opts)
         cb(false, "")
     end, { buffer = win.buf_id, nowait = true })
 end
-
 
 --- not worried about perf, we will likely only ever have 1 maybe 2 windows
 --- ever open at the same time

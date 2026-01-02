@@ -47,7 +47,7 @@ describe("visual", function()
     it("should replace visual selection with AI response", function()
         local p, buffer, range = setup(content, 2, 1, 2, 23)
         local state = _99.__get_state()
-        local visual_fn = require("99.ops.visual")
+        local visual_fn = require("99.ops.over-range")
 
         local context =
             require("99.request-context").from_current_buffer(state, 100)
@@ -78,7 +78,7 @@ describe("visual", function()
         }
         local p, buffer, range = setup(multi_line_content, 2, 1, 4, 17)
         local state = _99.__get_state()
-        local visual_fn = require("99.ops.visual")
+        local visual_fn = require("99.ops.over-range")
 
         local context =
             require("99.request-context").from_current_buffer(state, 200)
@@ -106,7 +106,7 @@ describe("visual", function()
 
     it("should cancel request when stop_all_requests is called", function()
         local p, buffer, range = setup(content, 2, 1, 2, 23)
-        local visual_fn = require("99.ops.visual")
+        local visual_fn = require("99.ops.over-range")
         local state = _99.__get_state()
         local context =
             require("99.request-context").from_current_buffer(state, 300)
@@ -133,7 +133,7 @@ describe("visual", function()
 
     it("should handle error cases with graceful failures", function()
         local p, buffer, range = setup(content, 2, 1, 2, 23)
-        local visual_fn = require("99.ops.visual")
+        local visual_fn = require("99.ops.over-range")
         local state = _99.__get_state()
         local context =
             require("99.request-context").from_current_buffer(state, 400)
@@ -151,7 +151,7 @@ describe("visual", function()
 
     it("should handle cancelled status gracefully", function()
         local p, buffer, range = setup(content, 2, 1, 2, 23)
-        local visual_fn = require("99.ops.visual")
+        local visual_fn = require("99.ops.over-range")
         local state = _99.__get_state()
         local context =
             require("99.request-context").from_current_buffer(state, 500)
