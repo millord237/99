@@ -81,8 +81,9 @@ local function create_centered_window()
 end
 
 --- @param config _99.window.Config
+--- @param win_config vim.api.keyset.win_config
 --- @return _99.window.Window
-local function create_floating_window(config)
+local function create_floating_window(config, win_config)
     local buf_id = vim.api.nvim_create_buf(false, true)
     local win_id = vim.api.nvim_open_win(buf_id, true, {
         relative = "editor",
@@ -92,6 +93,9 @@ local function create_floating_window(config)
         col = config.col or 0,
         anchor = config.anchor,
         style = "minimal",
+        border = win_config.border,
+        title = win_config.title,
+        title_pos = "center",
     })
     local window = {
         config = config,
