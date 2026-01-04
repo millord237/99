@@ -38,7 +38,8 @@ local function update_file_with_changes(context, res)
 end
 
 --- @param context _99.RequestContext
-local function fill_in_function(context)
+--- @param additional_prompt string?
+local function fill_in_function(context, additional_prompt)
     local logger = context.logger:set_area("fill_in_function")
     local ts = editor.treesitter
     local buffer = vim.api.nvim_get_current_buf()
@@ -58,7 +59,11 @@ local function fill_in_function(context)
     end
 
     local request = Request.new(context)
-    request:add_prompt_content(context._99.prompts.prompts.fill_in_function())
+    local full_prompt = context._99.prompts.prompts.fill_in_function()
+    if additional_prompt then
+        context._99.prompts.prompts.prompt(additional_prompt, full_prompt)
+    end
+    request:add_prompt_content(full_prompt)
 
     local request_status = RequestStatus.new(
         250,

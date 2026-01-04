@@ -23,7 +23,7 @@ local Range = require("99.geo").Range
 --- @return _99.StateProps
 local function create_99_state()
     return {
-        model = "anthropic/claude-sonnet-4-5",
+        model = "opencode/claude-opus-4-5",
         md_files = {},
         prompts = require("99.prompt-settings"),
         ai_stdout_rows = 3,
@@ -60,7 +60,8 @@ _99_State.__index = _99_State
 --- @return _99.State
 function _99_State.new()
     local props = create_99_state()
-    return setmetatable(props, _99_State) -- TODO: How do i do this right?
+    ---@diagnostic disable-next-line: return-type-mismatch
+    return setmetatable(props, _99_State)
 end
 
 local _active_request_id = 0
@@ -142,6 +143,24 @@ function _99.info()
         string.format("Active Requests: %d", _99_state:active_request_count())
     )
     Window.display_centered_message(info)
+end
+
+function _99.fill_in_function_with_prompt()
+    local context = get_context("fill-in-function-with-prompt")
+    context.logger:debug("start")
+    Window.capture_input(function(success, response)
+        context.logger:debug(
+            "capture_prompt",
+            "success",
+            success,
+            "response",
+            response
+        )
+        if success then
+            ops.fill_in_function(context, response)
+        end
+    end, {})
+    ops.fill_in_function(get_context("fill_in_function"))
 end
 
 function _99.fill_in_function()
