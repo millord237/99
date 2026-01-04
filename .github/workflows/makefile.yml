@@ -16,8 +16,10 @@ jobs:
 
     - name: Install Neovim
       run: |
-        sudo apt-get update
-        sudo apt-get install -y neovim
+        wget -q https://github.com/neovim/neovim/releases/download/v0.10.3/nvim-linux64.tar.gz
+        tar xzf nvim-linux64.tar.gz
+        sudo mv nvim-linux64 /opt/nvim
+        sudo ln -s /opt/nvim/bin/nvim /usr/local/bin/nvim
 
     - name: Install luarocks
       run: |
