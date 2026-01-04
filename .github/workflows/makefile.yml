@@ -14,5 +14,29 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Run stylua
+    - name: Install Neovim
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y neovim
+
+    - name: Install luarocks
+      run: |
+        sudo apt-get install -y luarocks
+
+    - name: Install luacheck
+      run: |
+        sudo luarocks install luacheck
+
+    - name: Install stylua
+      run: |
+        wget -qO- https://github.com/JohnnyMorganz/StyLua/releases/latest/download/stylua-linux-x86_64.zip -O stylua.zip
+        unzip stylua.zip
+        chmod +x stylua
+        sudo mv stylua /usr/local/bin/
+
+    - name: Install plenary.nvim
+      run: |
+        git clone https://github.com/nvim-lua/plenary.nvim.git ../plenary.nvim
+
+    - name: Run pr_ready
       run: make pr_ready
