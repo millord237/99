@@ -81,8 +81,9 @@ local function create_centered_window()
 end
 
 --- @param config _99.window.Config
+--- @param win_config vim.api.keyset.win_config
 --- @return _99.window.Window
-local function create_floating_window(config)
+local function create_floating_window(config, win_config)
     local buf_id = vim.api.nvim_create_buf(false, true)
     local win_id = vim.api.nvim_open_win(buf_id, true, {
         relative = "editor",
@@ -92,6 +93,9 @@ local function create_floating_window(config)
         col = config.col or 0,
         anchor = config.anchor,
         style = "minimal",
+        border = win_config.border,
+        title = win_config.title,
+        title_pos = "center",
     })
     local window = {
         config = config,
@@ -128,7 +132,10 @@ end
 --- @param error_text string
 --- @return _99.window.Window
 function M.display_error(error_text)
-    local window = create_floating_window(create_window_top_config())
+    local window = create_floating_window(create_window_top_config(), {
+        title = " 99 Error ",
+        border = "rounded",
+    })
     local lines = vim.split(error_text, "\n")
 
     table.insert(lines, 1, "")
@@ -170,7 +177,10 @@ end
 --- @param text string
 function M.display_cancellation_message(text)
     local config = create_window_top_left_config()
-    local window = create_floating_window(config)
+    local window = create_floating_window(config, {
+        title = " 99 Cancelled ",
+        border = "rounded",
+    })
     local lines = vim.split(text, "\n")
 
     vim.api.nvim_buf_set_lines(window.buf_id, 0, -1, false, lines)
@@ -197,7 +207,10 @@ function M.display_full_screen_message(lines)
     --- but i just want this to work and then later... ohh much later, ill fix
     --- this basic nonsense
     M.clear_active_popups()
-    local window = create_floating_window(create_window_full_screen())
+    local window = create_floating_window(create_window_full_screen(), {
+        title = " 99 ",
+        border = "rounded",
+    })
     local display_lines = ensure_no_new_lines(lines)
     vim.api.nvim_buf_set_lines(window.buf_id, 0, -1, false, display_lines)
 end
@@ -207,7 +220,10 @@ end
 function M.create_centered_window()
     M.clear_active_popups()
     local config = create_centered_window()
-    local window = create_floating_window(config)
+    local window = create_floating_window(config, {
+        title = " 99 ",
+        border = "rounded",
+    })
     return window, config
 end
 
@@ -215,7 +231,10 @@ end
 function M.display_centered_message(message)
     M.clear_active_popups()
     local config = create_centered_window()
-    local window = create_floating_window(config)
+    local window = create_floating_window(config, {
+        title = " 99 ",
+        border = "rounded",
+    })
     local display_lines = ensure_no_new_lines(message)
 
     vim.api.nvim_buf_set_lines(window.buf_id, 0, -1, false, display_lines)
@@ -229,7 +248,12 @@ function M.capture_input(cb, opts)
     _ = opts
 
     --- TODO: styling should be extendable
-    local win = M.create_centered_window()
+    M.clear_active_popups()
+    local config = create_centered_window()
+    local win = create_floating_window(config, {
+        title = " 99 Prompt ",
+        border = "rounded",
+    })
 
     vim.api.nvim_buf_set_name(win.buf_id, "99-prompt")
     vim.wo[win.win_id].number = true
