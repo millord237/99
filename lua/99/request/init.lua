@@ -187,7 +187,11 @@ function Request:cancel()
     self.state = "cancelled"
     if self._proc and self._proc.pid then
         pcall(function()
-            local sigterm = (vim.uv and vim.uv.constants and vim.uv.constants.SIGTERM) or 15
+            local sigterm = (
+                vim.uv
+                and vim.uv.constants
+                and vim.uv.constants.SIGTERM
+            ) or 15
             self._proc:kill(sigterm)
         end)
     end
