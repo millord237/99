@@ -9,14 +9,18 @@ end
 --- @field visual_selection fun(range: _99.Range): string
 --- @field fill_in_function fun(): string
 local prompts = {
+    role = function()
+        return [[ You are a software engineering assistant mean to create robust and conanical code ]]
+    end,
     fill_in_function = function()
         return [[
-fill in the function.  dont change the function signature.
-do not edit anything outside of this function.
-prioritize using internal functions for work that has already been done.
-any NOTE's left in the function should be removed but instructions followed.
-Your response should be the full function, including function declaration, do not provide the body only
-    ]]
+You have been given a function change.
+Create the contents of the function.
+If the function already contains contents, use those as context
+Check the contents of the file you are in for any helper functions or context
+
+if there are DIRECTIONS, follow those when changing this function.  Do not deviate
+]]
     end,
     output_file = function()
         return [[
@@ -31,7 +35,9 @@ ONLY provide requested changes by writing the change to TEMP_FILE
     prompt = function(prompt, action)
         return string.format(
             [[
+<DIRECTIONS>
 %s
+</DIRECTIONS>
 <Context>
 %s
 </Context>

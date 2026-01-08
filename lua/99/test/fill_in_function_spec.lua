@@ -16,6 +16,7 @@ local function setup(content, row, col, lang)
         provider = p,
         logger = {
             error_cache_level = Levels.ERROR,
+            type = "print",
         },
     })
 
@@ -63,6 +64,8 @@ describe("fill_in_function", function()
         }
         local p, buffer = setup(ts_content, 2, 12, "typescript")
         local state = _99.__get_state()
+
+        print("TEST", vim.bo[buffer].ft)
 
         _99.fill_in_function()
 

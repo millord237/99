@@ -9,6 +9,7 @@ local max_requests_in_logger_cache = MAX_REQUEST_DEFAULT
 
 --- @class _99.Logger.Options
 --- @field level number?
+--- @field type? "print" | "void" | "file"
 --- @field path string?
 --- @field print_on_error? boolean
 --- @field max_requests_cached? number
@@ -195,9 +196,10 @@ function Logger:configure(opts)
         self:set_level(opts.level)
     end
 
-    if opts.path == "print" then
+    if opts.type == "print" then
         self:print_sink()
-    elseif opts.path then
+    elseif opts.type == "file" then
+        assert(opts.path, "if you choose file for logger, you must have a path specified")
         self:file_sink(opts.path)
     else
         self:void_sink()
