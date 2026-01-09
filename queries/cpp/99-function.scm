@@ -1,19 +1,18 @@
-; void test() { }
-(function_definition) @context.function
+; void foo() { }
 (function_definition
-  body: (compound_statement) @context.body)
+  body: (compound_statement) @context.body) @context.function
 
-; const auto display_text = [](std::any canvas, std::string_view text, int x, int y) { };
-(lambda_expression) @context.function
-(lambda_expression
-  body: (compound_statement) @context.body)
+; const auto foo = [](int arg) { };
+(declaration
+  declarator: (init_declarator
+    value: (lambda_expression
+      body: (compound_statement) @context.body))) @context.function
 
 ; template<typename T>
-; concept Callback = requires(T cb) {
-;     { cb() } -> std::same_as<void>;
-;     { ... } -> ...;
+; concept Foo = requires(T foo) {
+;     { foo() } -> std::same_as<void>;
+;     {  ...  } -> ...;
 ; };
-(concept_definition) @context.function
 (concept_definition
-    (requires_expression
-        requirements: (requirement_seq) @context.body))
+  (requires_expression
+    requirements: (requirement_seq) @context.body)) @context.function
