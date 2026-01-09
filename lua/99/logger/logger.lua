@@ -199,7 +199,10 @@ function Logger:configure(opts)
     if opts.type == "print" then
         self:print_sink()
     elseif opts.type == "file" then
-        assert(opts.path, "if you choose file for logger, you must have a path specified")
+        assert(
+            opts.path,
+            "if you choose file for logger, you must have a path specified"
+        )
         self:file_sink(opts.path)
     else
         self:void_sink()
