@@ -41,13 +41,9 @@ local to_install = missing_parsers(required_parsers)
 if #to_install > 0 then
   -- fixes 'pos_delta >= 0' error - https://github.com/nvim-lua/plenary.nvim/issues/52
   vim.cmd("set display=lastline")
-
-  -- Only attempt installation if nvim-treesitter provided the command.
-  if vim.fn.exists(":TSInstallSync") == 2 then
-      -- make "TSInstall*" available
-      vim.cmd("runtime! plugin/nvim-treesitter.vim")
-      vim.cmd("TSInstallSync " .. table.concat(to_install, " "))
-  end
+  -- make "TSInstall*" available
+  vim.cmd("runtime! plugin/nvim-treesitter.vim")
+  vim.cmd("TSInstallSync " .. table.concat(to_install, " "))
 
   local still_missing = missing_parsers(required_parsers)
   if #still_missing > 0 then
