@@ -14,6 +14,7 @@ jobs:
     env:
       NVIM_VERSION: v0.10.3
       NVIM_TREESITTER_SHA: 2ba5ec184609a96b513bf4c53a20512d64e27f39
+      TREE_SITTER_CLI_VERSION: 0.22.6
       XDG_DATA_HOME: ${{ github.workspace }}/.xdg/data
       XDG_CACHE_HOME: ${{ github.workspace }}/.xdg/cache
 
@@ -46,13 +47,13 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .xdg
-        key: ${{ runner.os }}-nvim-${{ env.NVIM_VERSION }}-ts-${{ env.NVIM_TREESITTER_SHA }}
+        key: ${{ runner.os }}-nvim-${{ env.NVIM_VERSION }}-ts-${{ env.NVIM_TREESITTER_SHA }}-tscli-${{ env.TREE_SITTER_CLI_VERSION }}
 
     - name: Install tree-sitter CLI
       run: |
         node --version
         npm --version
-        sudo npm install -g tree-sitter-cli
+        sudo npm install -g tree-sitter-cli@${TREE_SITTER_CLI_VERSION}
         tree-sitter --version
 
     - name: Install plenary.nvim
