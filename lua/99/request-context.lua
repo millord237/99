@@ -26,6 +26,10 @@ function RequestContext.from_current_buffer(_99, xid)
     local full_path = vim.api.nvim_buf_get_name(buffer)
     local file_type = vim.bo[buffer].ft
 
+    if file_type == "typescriptreact" then
+        file_type = "typescript"
+    end
+
     local mds = {}
     for _, md in ipairs(_99.md_files) do
         table.insert(mds, md)

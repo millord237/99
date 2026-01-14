@@ -23,7 +23,7 @@ local Range = require("99.geo").Range
 --- @return _99.StateProps
 local function create_99_state()
     return {
-        model = "opencode/claude-opus-4-5",
+        model = "opencode/claude-sonnet-4-5",
         md_files = {},
         prompts = require("99.prompt-settings"),
         ai_stdout_rows = 3,
@@ -251,6 +251,12 @@ function _99.setup(opts)
     opts = opts or {}
     _99_state = _99_State.new()
     _99_state.provider_override = opts.provider
+
+    vim.api.nvim_create_autocmd("VimLeavePre", {
+        callback = function()
+            _99.stop_all_requests()
+        end,
+    })
 
     Logger:configure(opts.logger)
 

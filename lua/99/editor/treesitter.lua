@@ -147,6 +147,7 @@ function M.containing_function(context, cursor)
     local lang = context.file_type
     local logger = context and context.logger:set_area("treesitter") or Logger
 
+    logger:error("loading lang", "buffer", buffer, "lang", lang)
     local root = tree_root(buffer, lang)
     if not root then
         logger:debug("LSP: could not find tree root")
