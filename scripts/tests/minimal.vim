@@ -69,7 +69,7 @@ if #to_install > 0 then
   if has_main_api then
     local ok, err = pcall(install_with_main_branch_api, to_install)
     if not ok then
-      vim.print('Tree-sitter install error (main API): ' .. tostring(err))
+      print('Tree-sitter install error (main API): ' .. tostring(err))
     end
   else
     local ok, err = pcall(install_with_master_branch_api, to_install)
