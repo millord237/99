@@ -1,15 +1,11 @@
+local Window = require("99.window")
+Window.clear_active_popups()
 R("99")
-local foo_bar = {fizz = 3}
 
-function fizz_buzz(count)
-    local result = {}
-    for i = 1, count do
-    end
-    return result
+function test()
+    local Window = require("99.window")
+    Window.capture_input(function(input)
+        print(input)
+    end, {})
 end
-
---- @param numbers number[]
-function sort(numbers)
-    table.sort(numbers)
-    return numbers
-end
+test()

@@ -67,6 +67,20 @@ local function create_window_full_screen()
   }
 end
 
+--- @param config _99.window.Config
+---@param offset_bottom number | nil
+--- @return _99.window.Config
+local function create_window_inside(config, offset_bottom)
+  offset_bottom = offset_bottom or 0
+  return {
+    width = config.width - 2,
+    height = 1,
+    row = config.row + config.height - offset_bottom,
+    col = config.col + 1,
+    anchor = config.anchor,
+  }
+end
+
 --- @return _99.window.Config
 local function create_centered_window()
   local width, height = get_ui_dimensions()
@@ -242,6 +256,17 @@ function M.display_centered_message(message)
   return window
 end
 
+--- @param win _99.window.Window
+--- @param name string
+local function set_defaul_win_options(win, name)
+  vim.api.nvim_buf_set_name(win.buf_id, name)
+  vim.wo[win.win_id].number = true
+  vim.bo[win.buf_id].filetype = "99"
+  vim.bo[win.buf_id].buftype = "acwrite"
+  vim.bo[win.buf_id].bufhidden = "wipe"
+  vim.bo[win.buf_id].swapfile = false
+end
+
 --- @param cb fun(success: boolean, result: string): nil
 --- @param opts {}
 function M.capture_input(cb, opts)
@@ -249,18 +274,32 @@ function M.capture_input(cb, opts)
 
   --- TODO: styling should be extendable
   M.clear_active_popups()
+
   local config = create_centered_window()
+  local help = create_window_inside(config)
+  local behaviors = create_window_inside(config, 1)
+
   local win = create_floating_window(config, {
     title = " 99 Prompt ",
     border = "rounded",
   })
 
-  vim.api.nvim_buf_set_name(win.buf_id, "99-prompt")
-  vim.wo[win.win_id].number = true
-  vim.bo[win.buf_id].filetype = "99"
-  vim.bo[win.buf_id].buftype = "acwrite"
-  vim.bo[win.buf_id].bufhidden = "wipe"
-  vim.bo[win.buf_id].swapfile = false
+  local help_win = create_floating_window(help, {
+    title = "",
+    border = "none",
+  })
+
+  local behaviors_win = create_floating_window(behaviors, {
+    title = "",
+    border = "none",
+  })
+
+  set_defaul_win_options(win, "99-prompt")
+  set_defaul_win_options(help_win, "99-prompt-help")
+  set_defaul_win_options(behaviors_win, "99-prompt-behaviors")
+
+  vim.wo[behaviors_win.win_id].number = false
+  vim.wo[help_win.win_id].number = false
 
   local group = vim.api.nvim_create_augroup(
     "99_present_prompt_" .. win.buf_id,
@@ -290,6 +329,9 @@ function M.capture_input(cb, opts)
     M.clear_active_popups()
     cb(false, "")
   end, { buffer = win.buf_id, nowait = true })
+
+  vim.api.nvim_buf_set_lines(help_win.buf_id, 1, 1, false, {"help"})
+  vim.api.nvim_buf_set_lines(behaviors_win.buf_id, 1, 1, false, {"beh"})
 end
 
 --- not worried about perf, we will likely only ever have 1 maybe 2 windows
