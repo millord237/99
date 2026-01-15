@@ -44,4 +44,21 @@ function M.rules_to_items(rules)
   return items
 end
 
+--- @param rules _99.Agents.Rules
+---@param token string
+---@return boolean
+function M.is_rule(rules, token)
+  for _, rule in ipairs(rules.cursor or {}) do
+    if rule.path == token then
+      return true
+    end
+  end
+  for _, rule in ipairs(rules.custom or {}) do
+    if rule.path == token then
+      return true
+    end
+  end
+  return false
+end
+
 return M
