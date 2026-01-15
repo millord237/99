@@ -6,6 +6,7 @@ local editor = require("99.editor")
 local RequestStatus = require("99.ops.request_status")
 local Window = require("99.window")
 local make_clean_up = require("99.ops.clean-up")
+local Agents = require("99.extensions.agents")
 
 --- @param context _99.RequestContext
 --- @param res string
@@ -38,8 +39,9 @@ local function update_file_with_changes(context, res)
 end
 
 --- @param context _99.RequestContext
---- @param additional_prompt string?
-local function fill_in_function(context, additional_prompt)
+--- @param opts? _99.ops.Opts
+local function fill_in_function(context, opts)
+  opts = opts or {}
   local logger = context.logger:set_area("fill_in_function")
   local ts = editor.treesitter
   local buffer = vim.api.nvim_get_current_buf()
@@ -60,9 +62,13 @@ local function fill_in_function(context, additional_prompt)
 
   local request = Request.new(context)
   local full_prompt = context._99.prompts.prompts.fill_in_function()
+  local additional_prompt = opts.additional_prompt
   if additional_prompt then
     full_prompt =
       context._99.prompts.prompts.prompt(additional_prompt, full_prompt)
+
+    local rules = Agents.find_rules(context._99.rules, additional_prompt)
+    context:add_agent_rules(rules)
   end
   request:add_prompt_content(full_prompt)
 

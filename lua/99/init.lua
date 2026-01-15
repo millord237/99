@@ -7,6 +7,7 @@ local get_id = require("99.id")
 local RequestContext = require("99.request-context")
 local Range = require("99.geo").Range
 local Extensions = require("99.extensions")
+local Agents = require("99.extensions.agents")
 
 --- @alias _99.Cleanup fun(): nil
 
@@ -38,7 +39,7 @@ end
 --- @class _99.Completion
 --- @field source "cmp" | nil
 --- @field custom_rules string[] | nil
---- @field cursor_rules string defaults to .cursor/rules
+--- @field cursor_rules string | nil defaults to .cursor/rules
 
 --- @class _99.Options
 --- @field logger _99.Logger.Options?
@@ -60,6 +61,7 @@ end
 --- @field languages string[]
 --- @field display_errors boolean
 --- @field provider_override _99.Provider?
+--- @field rules _99.Agents.Rules
 --- @field __active_requests _99.Cleanup[]
 --- @field __view_log_idx number
 local _99_State = {}
@@ -70,6 +72,20 @@ function _99_State.new()
   local props = create_99_state()
   ---@diagnostic disable-next-line: return-type-mismatch
   return setmetatable(props, _99_State)
+end
+
+--- TODO: This is something to understand.  I bet that this is going to need
+--- a lot of performance tuning.  I am just reading every file, and this could
+--- take a decent amount of time if there are lots of rules.
+---
+--- Simple perfs:
+--- 1. read 4096 bytes at a tiem instead of whole file and parse out lines
+--- 2. don't show the docs
+--- 3. do the operation once at setup instead of every time.
+---    likely not needed to do this all the time.
+function _99_State:refresh_rules()
+  self.rules = Agents.rules(self)
+  Extensions.refresh(self)
 end
 
 local _active_request_id = 0
@@ -122,6 +138,7 @@ end
 --- @param operation_name string
 --- @return _99.RequestContext
 local function get_context(operation_name)
+  _99_state:refresh_rules()
   local trace_id = get_id()
   local context = RequestContext.from_current_buffer(_99_state, trace_id)
   context.logger:debug("99 Request", "method", operation_name)
@@ -274,6 +291,14 @@ function _99.setup(opts)
     }
   _99_state.completion.cursor_rules = _99_state.completion.cursor_rules
     or ".cursor/rules/"
+
+  _99_state.completion = {
+    cursor_rules = "scratch/cursor/rules",
+    custom_rules = {
+      "scratch/custom_rules/",
+    },
+    source = "cmp",
+  }
 
   vim.api.nvim_create_autocmd("VimLeavePre", {
     callback = function()

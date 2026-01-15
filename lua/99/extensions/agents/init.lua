@@ -37,9 +37,7 @@ function M.rules_to_items(rules)
     table.insert(items, rule)
   end
   for _, custom_rules in ipairs(rules.custom or {}) do
-    for _, rule in ipairs(custom_rules) do
-      table.insert(items, rule)
-    end
+    table.insert(items, custom_rules)
   end
   return items
 end
@@ -82,18 +80,18 @@ end
 --- @param haystack string
 --- @return _99.Agents.Rule[]
 function M.find_rules(rules, haystack)
-    --- @type _99.Agents.Rule[]
-    local out = {}
+  --- @type _99.Agents.Rule[]
+  local out = {}
 
-    for word in haystack:gmatch("@%S+") do
-        local rule_string = word:sub(2)
-        local rule = M.get_rule_by_path(rules, rule_string)
-        if rule then
-            table.insert(out, rule)
-        end
+  for word in haystack:gmatch("@%S+") do
+    local rule_string = word:sub(2)
+    local rule = M.get_rule_by_path(rules, rule_string)
+    if rule then
+      table.insert(out, rule)
     end
+  end
 
-    return out
+  return out
 end
 
 return M

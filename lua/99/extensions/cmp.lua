@@ -1,15 +1,28 @@
 local Agents = require("99.extensions.agents")
+local Helpers = require("99.extensions.agents.helpers")
 local SOURCE = "99"
 
+--- @class _99.Extensions.CmpItem
+--- @field rule _99.Agents.Rule
+--- @field docs string
+
 --- @param _99 _99.State
---- @return _99.Agents.Rule[]
+--- @return _99.Extensions.CmpItem[]
 local function rules(_99)
-  return Agents.rules_to_items(Agents.rules(_99))
+  local agent_rules = Agents.rules_to_items(_99.rules)
+  local out = {}
+  for _, rule in ipairs(agent_rules) do
+    table.insert(out, {
+      rule = rule,
+      docs = Helpers.head(rule.path),
+    })
+  end
+  return out
 end
 
 --- @class CmpSource
 --- @field _99 _99.State
---- @field items _99.Agents.Rule[]
+--- @field items _99.Extensions.CmpItem[]
 local CmpSource = {}
 CmpSource.__index = CmpSource
 
@@ -62,12 +75,12 @@ function CmpSource:complete(params, callback)
 
   for _, item in ipairs(self.items) do
     table.insert(items, {
-      label = item.name,
-      insertText = item.path,
-      filterText = item.name,
+      label = item.rule.name,
+      insertText = item.rule.path,
+      filterText = item.rule.name,
       kind = 17, -- file
-      -- documentation = "here is the documentation and everything associated with it",
-      -- detail = "detail: right side hint",
+      documentation = item.docs,
+      detail = item.rule.path,
     })
   end
 
@@ -75,6 +88,7 @@ function CmpSource:complete(params, callback)
     items = items,
     isIncomplete = false,
   })
+
 end
 
 --- TODO: Look into what this could be

@@ -57,6 +57,34 @@ function RequestContext:add_md_file_name(md_file_name)
   return self
 end
 
+--- @param rules _99.Agents.Rule[]
+function RequestContext:add_agent_rules(rules)
+  for _, rule in ipairs(rules) do
+    local file = io.open(rule.path, "r")
+    if file then
+      local content = file:read("*a")
+      file:close()
+      self.logger:info(
+        "Context#adding agent file to the context",
+        "agent_path",
+        rule
+      )
+      table.insert(
+        self.ai_context,
+        string.format(
+          [[
+<%s>
+%s
+</%s>]],
+          rule.name,
+          content,
+          rule.name
+        )
+      )
+    end
+  end
+end
+
 function RequestContext:_read_md_files()
   local cwd = vim.uv.cwd()
   local dir = vim.fn.fnamemodify(self.full_path, ":h")

@@ -27,11 +27,21 @@ return {
     source.init(_99)
   end,
 
+  --- @param _99 _99.State
   setup_buffer = function(_99)
     local source = get_source(_99.completion)
     if not source then
       return
     end
     source.init_for_buffer(_99)
+  end,
+
+  --- @param _99 _99.State
+  refresh = function(_99)
+    local source = get_source(_99.completion)
+    if not source then
+      return
+    end
+    source.refresh_state(_99)
   end,
 }
