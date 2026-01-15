@@ -9,6 +9,24 @@ local Range = require("99.geo").Range
 local Extensions = require("99.extensions")
 local Agents = require("99.extensions.agents")
 
+---@param path_or_rule string | _99.Agents.Rule
+local function expand(path_or_rule)
+  if type(path_or_rule) == "string" then
+    return vim.fn.expand(path_or_rule)
+  end
+  return vim.fn.expand(path_or_rule.path)
+end
+
+--- @param opts _99.ops.Opts?
+--- @return _99.ops.Opts
+local function process_opts(opts)
+    opts = opts or {}
+    for i, rule in ipairs(opts.additional_rules or {}) do
+        opts.additional_rules[i] = expand(rule)
+    end
+    return opts
+end
+
 --- @alias _99.Cleanup fun(): nil
 
 --- @class _99.StateProps
@@ -38,7 +56,7 @@ end
 
 --- @class _99.Completion
 --- @field source "cmp" | nil
---- @field custom_rules string[] | nil
+--- @field custom_rules string[]
 --- @field cursor_rules string | nil defaults to .cursor/rules
 
 --- @class _99.Options
@@ -169,12 +187,12 @@ end
 
 --- @param path string
 function _99:rule_from_path(path)
-  return Agents.get_rule_by_path(_99_state.rules, path)
+  return Agents.get_rule_by_path(_99_state.rules, expand(path))
 end
 
 --- @param opts? _99.ops.Opts
 function _99.fill_in_function_prompt(opts)
-  opts = opts or {}
+  opts = process_opts(opts)
   local context = get_context("fill-in-function-with-prompt")
 
   context.logger:debug("start")
@@ -200,12 +218,13 @@ end
 
 --- @param opts? _99.ops.Opts
 function _99.fill_in_function(opts)
+  opts = process_opts(opts)
   ops.fill_in_function(get_context("fill_in_function"), opts)
 end
 
 --- @param opts _99.ops.Opts
 function _99.visual_prompt(opts)
-  opts = opts or {}
+  opts = process_opts(opts)
   local context = get_context("over-range-with-prompt")
   context.logger:debug("start")
   Window.capture_input({
@@ -231,6 +250,7 @@ end
 --- @param context _99.RequestContext?
 --- @param opts _99.ops.Opts?
 function _99.visual(context, opts)
+  opts = process_opts(opts)
   --- TODO: Talk to teej about this.
   --- Visual selection marks are only set in place post visual selection.
   --- that means for this function to work i must escape out of visual mode
@@ -274,10 +294,6 @@ function _99.next_request_logs()
   Window.display_full_screen_message(logs[_99_state.__view_log_idx])
 end
 
-function _99.__debug_ident()
-  ops.debug_ident(_99_state)
-end
-
 function _99.stop_all_requests()
   for _, clean_up in pairs(_99_state.__active_requests) do
     clean_up()
@@ -303,6 +319,12 @@ function _99.setup(opts)
     }
   _99_state.completion.cursor_rules = _99_state.completion.cursor_rules
     or ".cursor/rules/"
+  _99_state.completion.custom_rules = _99_state.completion.custom_rules or {}
+
+  local crules = _99_state.completion.custom_rules
+  for i, rule in ipairs(crules) do
+    crules[i] = expand(rule)
+  end
 
   vim.api.nvim_create_autocmd("VimLeavePre", {
     callback = function()

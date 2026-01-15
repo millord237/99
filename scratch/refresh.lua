@@ -1,40 +1,30 @@
---[[
-local Window = require("99.window")
-Window.clear_active_popups()
 R("99")
-
+local _99 = require("99")
+_99.setup({
+  completion = {
+    custom_rules = {
+      "~/.behaviors/",
+    },
+    source = "cmp",
+  },
+})
 local Ext = require("99.extensions")
 local Agents = require("99.extensions.agents")
-local _99 = require("99")
+local Helpers = require("99.extensions.agents.helpers")
 
-local function attach()
-    Ext.setup_buffer(_99.__get_state())
-end
-attach()
-
-]]
-
-local Ext = require("99.extensions")
-local _99 = require("99")
-
-local function attach()
-    Ext.setup_buffer(_99.__get_state())
-end
-attach()
+print(vim.inspect(Agents.rules(_99.__get_state())))
+print(vim.inspect(Helpers.ls("/home/theprimeagen/.behaviors")))
 
 function fizz_buzz(count)
-    local result = {}
-    for i = 1, count do
-        if i % 18 == 0 then
-            table.insert(result, "FizzBuzz")
-        elseif i % 5 == 0 then
-            table.insert(result, "Fizz")
-        elseif i % 9 == 0 then
-            table.insert(result, "Buzz")
-        else
-            table.insert(result, i)
-        end
+  for i = 1, count do
+    if i % 15 == 0 then
+      print("FizzBuzz")
+    elseif i % 3 == 0 then
+      print("Fizz")
+    elseif i % 5 == 0 then
+      print("Buzz")
+    else
+      print(i)
     end
-    return result
+  end
 end
-

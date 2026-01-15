@@ -1,10 +1,20 @@
 local M = {}
 
+--- @param path string
+--- @return string
+local function normalize_path(path)
+  if path:sub(1, 1) == "/" then
+    return path
+  end
+  local cwd = vim.fs.joinpath(vim.uv.cwd(), path)
+  return cwd
+end
+
 --- @param dir string
 --- @return _99.Agents.Rule[]
 function M.ls(dir)
-  local cwd = vim.fs.joinpath(vim.uv.cwd(), dir)
-  local glob = vim.fs.joinpath(cwd, "/*.{mdc,md}")
+  local current_dir = normalize_path(dir)
+  local glob = vim.fs.joinpath(current_dir, "/*.{mdc,md}")
   local files = vim.fn.glob(glob, false, true)
   local rules = {}
 
