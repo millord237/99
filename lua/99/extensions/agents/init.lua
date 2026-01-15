@@ -45,6 +45,23 @@ function M.rules_to_items(rules)
 end
 
 --- @param rules _99.Agents.Rules
+---@param path string
+---@return _99.Agents.Rule | nil
+function M.get_rule_by_path(rules, path)
+  for _, rule in ipairs(rules.cursor or {}) do
+    if rule.path == path then
+      return rule
+    end
+  end
+  for _, rule in ipairs(rules.custom or {}) do
+    if rule.path == path then
+      return rule
+    end
+  end
+  return nil
+end
+
+--- @param rules _99.Agents.Rules
 ---@param token string
 ---@return boolean
 function M.is_rule(rules, token)
@@ -59,6 +76,24 @@ function M.is_rule(rules, token)
     end
   end
   return false
+end
+
+--- @param rules _99.Agents.Rules
+--- @param haystack string
+--- @return _99.Agents.Rule[]
+function M.find_rules(rules, haystack)
+    --- @type _99.Agents.Rule[]
+    local out = {}
+
+    for word in haystack:gmatch("@%S+") do
+        local rule_string = word:sub(2)
+        local rule = M.get_rule_by_path(rules, rule_string)
+        if rule then
+            table.insert(out, rule)
+        end
+    end
+
+    return out
 end
 
 return M
