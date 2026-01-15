@@ -58,17 +58,24 @@ function RequestContext:add_md_file_name(md_file_name)
 end
 
 --- TODO: Dedupe any rules that have already been added
---- @param rules _99.Agents.Rule[]
+--- @param rules (_99.Agents.Rule | string)[]
 function RequestContext:add_agent_rules(rules)
+  self.logger:debug("add_agent_rules", "rules", rules)
   for _, rule in ipairs(rules) do
-    local file = io.open(rule.path, "r")
-    if file then
+    -- Handle both string paths and rule objects
+    local rule_path = type(rule) == "string" and rule or rule.path
+    local rule_name = type(rule) == "string" and vim.fn.fnamemodify(rule, ":t:r") or rule.name
+
+    local expanded_path = vim.fn.expand(rule_path)
+    local ok, file = pcall(io.open, expanded_path, "r")
+    self.logger:debug("add_agent_rules", "ok", ok, "path", rule_path, "expanded-path", expanded_path)
+    if ok and file then
       local content = file:read("*a")
       file:close()
       self.logger:info(
         "Context#adding agent file to the context",
         "agent_path",
-        rule
+        rule_path
       )
       table.insert(
         self.ai_context,
@@ -77,11 +84,13 @@ function RequestContext:add_agent_rules(rules)
 <%s>
 %s
 </%s>]],
-          rule.name,
+          rule_name,
           content,
-          rule.name
+          rule_name
         )
       )
+    else
+      self.logger:debug("unable to read agent rule", "rule", rule_path)
     end
   end
 end

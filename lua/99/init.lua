@@ -167,6 +167,11 @@ function _99.info()
   Window.display_centered_message(info)
 end
 
+--- @param path string
+function _99:rule_from_path(path)
+  return Agents.get_rule_by_path(_99_state.rules, path)
+end
+
 --- @param opts? _99.ops.Opts
 function _99.fill_in_function_prompt(opts)
   opts = opts or {}

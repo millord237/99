@@ -21,3 +21,20 @@ local function attach()
     Ext.setup_buffer(_99.__get_state())
 end
 attach()
+
+function fizz_buzz(count)
+    local result = {}
+    for i = 1, count do
+        if i % 18 == 0 then
+            table.insert(result, "FizzBuzz")
+        elseif i % 5 == 0 then
+            table.insert(result, "Fizz")
+        elseif i % 9 == 0 then
+            table.insert(result, "Buzz")
+        else
+            table.insert(result, i)
+        end
+    end
+    return result
+end
+

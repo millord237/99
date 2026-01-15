@@ -81,12 +81,12 @@ I make the assumption you are using Lazy
 				_99.stop_all_requests()
 			end)
 
-            --- a example using rules + action to produce a real exciting effect
-            --- ~/.rules/debug.md imagine that this is a behavior that adds in
-            --- the behavior where printf is what you want to debug and will
-            --- attempt to printf the functions contents for debugging
+            --- Example: Using rules + actions for custom behaviors
+            --- Create a rule file like ~/.rules/debug.md that defines custom behavior.
+            --- For instance, a "debug" rule could automatically add printf statements
+            --- throughout a function to help debug its execution flow.
 			vim.keymap.set("n", "<leader>9fd", function()
-				_99.stop_all_requests()
+				_99.fill_in_function()
 			end)
 		end,
 	},
