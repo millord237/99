@@ -110,6 +110,7 @@ local function create_floating_window(config, win_config)
     border = win_config.border,
     title = win_config.title,
     title_pos = "center",
+    zindex = win_config.zindex,
   })
   local window = {
     config = config,
@@ -267,12 +268,18 @@ local function set_defaul_win_options(win, name)
   vim.bo[win.buf_id].swapfile = false
 end
 
+--- @param win _99.window.Window
+local function set_scratch_opts(win)
+  vim.bo[win.buf_id].buftype = "nofile"
+  vim.bo[win.buf_id].bufhidden = "wipe"
+  vim.bo[win.buf_id].swapfile = false
+  vim.wo[win.win_id].number = false
+end
+
 --- @param cb fun(success: boolean, result: string): nil
 --- @param opts {}
 function M.capture_input(cb, opts)
   _ = opts
-
-  --- TODO: styling should be extendable
   M.clear_active_popups()
 
   local config = create_centered_window()
@@ -287,19 +294,27 @@ function M.capture_input(cb, opts)
   local help_win = create_floating_window(help, {
     title = "",
     border = "none",
+    zindex = 60,
   })
 
   local behaviors_win = create_floating_window(behaviors, {
     title = "",
     border = "none",
+    zindex = 60,
   })
 
   set_defaul_win_options(win, "99-prompt")
-  set_defaul_win_options(help_win, "99-prompt-help")
-  set_defaul_win_options(behaviors_win, "99-prompt-behaviors")
 
-  vim.wo[behaviors_win.win_id].number = false
-  vim.wo[help_win.win_id].number = false
+  -- Use nofile for helper windows so they don't prompt about unsaved changes
+  vim.api.nvim_buf_set_name(help_win.buf_id, "99-prompt-help")
+  set_scratch_opts(behaviors_win)
+
+  vim.api.nvim_buf_set_name(behaviors_win.buf_id, "99-prompt-behaviors")
+  set_scratch_opts(behaviors_win)
+
+  vim.api.nvim_buf_set_lines(help_win.buf_id, 0, 1, false, {"help"})
+  vim.api.nvim_buf_set_lines(behaviors_win.buf_id, 0, 1, false, {"beh"})
+  vim.api.nvim_set_current_win(win.win_id)
 
   local group = vim.api.nvim_create_augroup(
     "99_present_prompt_" .. win.buf_id,
@@ -329,9 +344,6 @@ function M.capture_input(cb, opts)
     M.clear_active_popups()
     cb(false, "")
   end, { buffer = win.buf_id, nowait = true })
-
-  vim.api.nvim_buf_set_lines(help_win.buf_id, 1, 1, false, {"help"})
-  vim.api.nvim_buf_set_lines(behaviors_win.buf_id, 1, 1, false, {"beh"})
 end
 
 --- not worried about perf, we will likely only ever have 1 maybe 2 windows
