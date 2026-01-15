@@ -4,6 +4,7 @@ local M = {
   active_windows = {},
 }
 local nsid = vim.api.nvim_create_namespace("99.window.error")
+local nvim_win_is_valid = vim.api.nvim_win_is_valid
 
 --- @class _99.window.Config
 --- @field width number
@@ -167,26 +168,12 @@ end
 
 --- @param window _99.window.Window
 local function window_close(window)
-  if vim.api.nvim_win_is_valid(window.win_id) then
+  if nvim_win_is_valid(window.win_id) then
     vim.api.nvim_win_close(window.win_id, true)
   end
   if vim.api.nvim_buf_is_valid(window.buf_id) then
     vim.api.nvim_buf_delete(window.buf_id, { force = true })
   end
-
-  local found = false
-  for i, w in ipairs(M.active_windows) do
-    if w.buf_id == window.buf_id and w.win_id == window.win_id then
-      found = true
-      table.remove(M.active_windows, i)
-      break
-    end
-  end
-
-  assert(
-    found,
-    "somehow we have closed a window that did not belong to the windows library"
-  )
 end
 
 --- @param text string
@@ -207,7 +194,9 @@ function M.display_cancellation_message(text)
   })
 
   vim.defer_fn(function()
-    window_close(window)
+    if nvim_win_is_valid(window.win_id) then
+      M.clear_active_popups()
+    end
   end, 5000)
 
   return window
@@ -268,14 +257,6 @@ local function set_defaul_win_options(win, name)
   vim.bo[win.buf_id].swapfile = false
 end
 
---- @param win _99.window.Window
-local function set_scratch_opts(win)
-  vim.bo[win.buf_id].buftype = "nofile"
-  vim.bo[win.buf_id].bufhidden = "wipe"
-  vim.bo[win.buf_id].swapfile = false
-  vim.wo[win.win_id].number = false
-end
-
 --- @param cb fun(success: boolean, result: string): nil
 --- @param opts {}
 function M.capture_input(cb, opts)
@@ -283,37 +264,12 @@ function M.capture_input(cb, opts)
   M.clear_active_popups()
 
   local config = create_centered_window()
-  local help = create_window_inside(config)
-  local behaviors = create_window_inside(config, 1)
-
   local win = create_floating_window(config, {
     title = " 99 Prompt ",
     border = "rounded",
   })
 
-  local help_win = create_floating_window(help, {
-    title = "",
-    border = "none",
-    zindex = 60,
-  })
-
-  local behaviors_win = create_floating_window(behaviors, {
-    title = "",
-    border = "none",
-    zindex = 60,
-  })
-
   set_defaul_win_options(win, "99-prompt")
-
-  -- Use nofile for helper windows so they don't prompt about unsaved changes
-  vim.api.nvim_buf_set_name(help_win.buf_id, "99-prompt-help")
-  set_scratch_opts(behaviors_win)
-
-  vim.api.nvim_buf_set_name(behaviors_win.buf_id, "99-prompt-behaviors")
-  set_scratch_opts(behaviors_win)
-
-  vim.api.nvim_buf_set_lines(help_win.buf_id, 0, 1, false, {"help"})
-  vim.api.nvim_buf_set_lines(behaviors_win.buf_id, 0, 1, false, {"beh"})
   vim.api.nvim_set_current_win(win.win_id)
 
   local group = vim.api.nvim_create_augroup(
@@ -321,10 +277,25 @@ function M.capture_input(cb, opts)
     { clear = true }
   )
 
+  vim.api.nvim_create_autocmd("BufLeave", {
+    group = group,
+    buffer = win.buf_id,
+    callback = function()
+      if nvim_win_is_valid(win.win_id) then
+        vim.api.nvim_set_current_win(win.win_id)
+      else
+        M.clear_active_popups()
+      end
+    end,
+  })
+
   vim.api.nvim_create_autocmd("BufWriteCmd", {
     group = group,
     buffer = win.buf_id,
     callback = function()
+      if not nvim_win_is_valid(win.win_id) then
+        return
+      end
       local lines = vim.api.nvim_buf_get_lines(win.buf_id, 0, -1, false)
       local result = table.concat(lines, "\n")
       M.clear_active_popups()
@@ -336,7 +307,22 @@ function M.capture_input(cb, opts)
     group = group,
     buffer = win.buf_id,
     callback = function()
+      if not nvim_win_is_valid(win.win_id) then
+        return
+      end
       vim.api.nvim_del_augroup_by_id(group)
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("WinClosed", {
+    group = group,
+    pattern = tostring(win.win_id),
+    callback = function()
+      if not nvim_win_is_valid(win.win_id) then
+        return
+      end
+      M.clear_active_popups()
+      cb(false, "")
     end,
   })
 
@@ -346,13 +332,11 @@ function M.capture_input(cb, opts)
   end, { buffer = win.buf_id, nowait = true })
 end
 
---- not worried about perf, we will likely only ever have 1 maybe 2 windows
---- ever open at the same time
 function M.clear_active_popups()
-  while #M.active_windows > 0 do
-    local window = M.active_windows[1]
+  for _, window in ipairs(M.active_windows) do
     window_close(window)
   end
+  M.active_windows = {}
 end
 
 return M
