@@ -2,14 +2,17 @@ local Request = require("99.request")
 local RequestStatus = require("99.ops.request_status")
 local Mark = require("99.ops.marks")
 local geo = require("99.geo")
+local make_clean_up = require("99.ops.clean-up")
+local Agents = require("99.extensions.agents")
+
 local Range = geo.Range
 local Point = geo.Point
-local make_clean_up = require("99.ops.clean-up")
 
 --- @param context _99.RequestContext
 --- @param range _99.Range
---- @param prompt string?
-local function over_range(context, range, prompt)
+--- @param opts? _99.ops.Opts
+local function over_range(context, range, opts)
+  opts = opts or {}
   local logger = context.logger:set_area("visual")
 
   local request = Request.new(context)
@@ -42,8 +45,18 @@ local function over_range(context, range, prompt)
   end)
 
   local full_prompt = context._99.prompts.prompts.visual_selection(range)
-  if prompt then
-    full_prompt = context._99.prompts.prompts.prompt(prompt, full_prompt)
+  local additional_prompt = opts.additional_prompt
+  if additional_prompt then
+    full_prompt =
+      context._99.prompts.prompts.prompt(additional_prompt, full_prompt)
+
+    local rules = Agents.find_rules(context._99.rules, additional_prompt)
+    context:add_agent_rules(rules)
+  end
+
+  local additional_rules = opts.additional_rules
+  if additional_rules then
+    context:add_agent_rules(additional_rules)
   end
 
   request:add_prompt_content(full_prompt)

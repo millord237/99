@@ -149,7 +149,6 @@ end
 --- @field logger _99.Logger
 --- @field _content string[]
 --- @field _proc vim.SystemObj?
-
 local Request = {}
 Request.__index = Request
 

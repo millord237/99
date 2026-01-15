@@ -70,6 +70,12 @@ local function fill_in_function(context, opts)
     local rules = Agents.find_rules(context._99.rules, additional_prompt)
     context:add_agent_rules(rules)
   end
+
+  local additional_rules = opts.additional_rules
+  if additional_rules then
+    context:add_agent_rules(additional_rules)
+  end
+
   request:add_prompt_content(full_prompt)
 
   local request_status = RequestStatus.new(

@@ -57,6 +57,7 @@ function RequestContext:add_md_file_name(md_file_name)
   return self
 end
 
+--- TODO: Dedupe any rules that have already been added
 --- @param rules _99.Agents.Rule[]
 function RequestContext:add_agent_rules(rules)
   for _, rule in ipairs(rules) do
