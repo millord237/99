@@ -26,7 +26,7 @@ vim.opt.rtp:append(vim.fn.stdpath('data') .. '/site')
 -- parsers to attempt to install (for user convenience)
 local all_parsers = {
   'c', 'cpp', 'go', 'lua', 'php', 'python', 'typescript',
-  'javascript', 'java', 'ruby', 'tsx', 'c_sharp', 'vue'
+  'javascript', 'java', 'ruby', 'tsx', 'c_sharp', 'vue', 'elixir'
 }
 
 -- parsers actually required for tests to run
