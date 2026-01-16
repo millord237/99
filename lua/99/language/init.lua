@@ -7,7 +7,7 @@ local Logger = require("99.logger.logger")
 --- @class _99.Langauges
 --- @field languages table<string, _99.LanguageOps>
 local M = {
-    languages = {},
+  languages = {},
 }
 
 --- @alias _99.langauge.GetLangParam _99.Location | number?
@@ -17,37 +17,37 @@ local M = {
 --- @return string
 --- @return number
 local function get_langauge(bufferOrLoc)
-    if type(bufferOrLoc) == "number" or not bufferOrLoc then
-        local buffer = bufferOrLoc or vim.api.nvim_get_current_buf()
-        local file_type =
-            vim.api.nvim_get_option_value("filetype", { buf = buffer })
-        local lang = M.languages[file_type]
-        if not lang then
-            Logger:fatal("language currently not supported", "lang", file_type)
-        end
-        return lang, file_type, buffer
-    end
-
-    local file_type = bufferOrLoc.file_type
+  if type(bufferOrLoc) == "number" or not bufferOrLoc then
+    local buffer = bufferOrLoc or vim.api.nvim_get_current_buf()
+    local file_type =
+      vim.api.nvim_get_option_value("filetype", { buf = buffer })
     local lang = M.languages[file_type]
     if not lang then
-        Logger:fatal("language currently not supported", "lang", file_type)
+      Logger:fatal("language currently not supported", "lang", file_type)
     end
-    return lang, file_type, bufferOrLoc.buffer
+    return lang, file_type, buffer
+  end
+
+  local file_type = bufferOrLoc.file_type
+  local lang = M.languages[file_type]
+  if not lang then
+    Logger:fatal("language currently not supported", "lang", file_type)
+  end
+  return lang, file_type, bufferOrLoc.buffer
 end
 
 local function validate_function(fn, file_type)
-    if type(fn) ~= "function" then
-        Logger:fatal("language does not support log_item", "lang", file_type)
-    end
+  if type(fn) ~= "function" then
+    Logger:fatal("language does not support log_item", "lang", file_type)
+  end
 end
 
 --- @param _99 _99.State
 function M.initialize(_99)
-    M.languages = {}
-    for _, lang in ipairs(_99.languages) do
-        M.languages[lang] = require("99.language." .. lang)
-    end
+  M.languages = {}
+  for _, lang in ipairs(_99.languages) do
+    M.languages[lang] = require("99.language." .. lang)
+  end
 end
 
 --- @param _ _99.State
@@ -55,10 +55,10 @@ end
 --- @param buffer number?
 --- @return string
 function M.log_item(_, item_name, buffer)
-    local lang, file_type = get_langauge(buffer)
-    validate_function(lang.log_item, file_type)
+  local lang, file_type = get_langauge(buffer)
+  validate_function(lang.log_item, file_type)
 
-    return lang.log_item(item_name)
+  return lang.log_item(item_name)
 end
 
 --[[
