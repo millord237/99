@@ -31,6 +31,22 @@ I make the assumption you are using Lazy
 					print_on_error = true,
 				},
 
+                --- A new feature that is centered around tags
+                completion = {
+                    --- Defaults to .cursor/rules
+                    cursor_rules = "<custom path to cursor rules>"
+
+                    --- A list of folders where you have your own agents
+                    custom_rules = {
+                      "scratch/custom_rules/",
+                    },
+
+                    --- What autocomplete do you use.  We currently only
+                    --- support cmp right now
+                    source = "cmp",
+
+                }
+
                 --- WARNING: if you change cwd then this is likely broken
                 --- ill likely fix this in a later change
                 ---
@@ -64,9 +80,22 @@ I make the assumption you are using Lazy
 			vim.keymap.set("v", "<leader>9s", function()
 				_99.stop_all_requests()
 			end)
+
+            --- Example: Using rules + actions for custom behaviors
+            --- Create a rule file like ~/.rules/debug.md that defines custom behavior.
+            --- For instance, a "debug" rule could automatically add printf statements
+            --- throughout a function to help debug its execution flow.
+			vim.keymap.set("n", "<leader>9fd", function()
+				_99.fill_in_function()
+			end)
 		end,
 	},
 ```
+
+## Completion
+When prompting, if you have cmp installed as your autocomplete you can use an autocomplete for rule inclusion in your prompt.
+
+You can also specify a directory for rule inclusion, and this plugin auto looks into `.cursor/rules` unless you override it
 
 ## API
 You can see the full api at [99 API](./lua/99/init.lua)
