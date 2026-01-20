@@ -319,12 +319,12 @@ function _99.setup(opts)
   _99_state = _99_State.new()
   _99_state.provider_override = opts.provider
   _99_state.completion = opts.completion
-      or {
-        source = nil,
-        custom_rules = {},
-      }
+    or {
+      source = nil,
+      custom_rules = {},
+    }
   _99_state.completion.cursor_rules = _99_state.completion.cursor_rules
-      or ".cursor/rules/"
+    or ".cursor/rules/"
   _99_state.completion.custom_rules = _99_state.completion.custom_rules or {}
 
   local crules = _99_state.completion.custom_rules
