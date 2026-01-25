@@ -270,6 +270,8 @@ local function highlight_rules_found(win, rules, group)
       return
     end
 
+    vim.api.nvim_buf_clear_namespace(win.buf_id, rule_nsid, 0, -1)
+
     local lines = vim.api.nvim_buf_get_lines(win.buf_id, 0, -1, false)
     local buffer_text = table.concat(lines, "\n")
     local rules_and_names = Agents.by_name(rules, buffer_text)
@@ -277,8 +279,6 @@ local function highlight_rules_found(win, rules, group)
     if not found_rules or vim.tbl_isempty(found_rules) then
       return
     end
-
-    vim.api.nvim_buf_clear_namespace(win.buf_id, rule_nsid, 0, -1)
 
     local rule_names = rules_and_names.names
     for line_num, line in ipairs(lines) do

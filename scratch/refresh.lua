@@ -11,7 +11,6 @@ _99.setup({
   },
 })
 
-print(vim.inspect(_99.__get_state().rules))
 Window.capture_input({
   cb = function(success, result)
     print("results")
