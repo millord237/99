@@ -145,6 +145,11 @@ function OpenCodeProvider._get_provider_name()
   return "OpenCodeProvider"
 end
 
+--- @return string
+function OpenCodeProvider._get_default_model()
+  return "opencode/claude-sonnet-4-5"
+end
+
 --- @class ClaudeCodeProvider : BaseProvider
 local ClaudeCodeProvider = setmetatable({}, { __index = BaseProvider })
 
@@ -167,6 +172,11 @@ function ClaudeCodeProvider._get_provider_name()
   return "ClaudeCodeProvider"
 end
 
+--- @return string
+function ClaudeCodeProvider._get_default_model()
+  return "claude-sonnet-4-5"
+end
+
 --- @class CursorAgentProvider : BaseProvider
 local CursorAgentProvider = setmetatable({}, { __index = BaseProvider })
 
@@ -180,6 +190,11 @@ end
 --- @return string
 function CursorAgentProvider._get_provider_name()
   return "CursorAgentProvider"
+end
+
+--- @return string
+function CursorAgentProvider._get_default_model()
+  return "sonnet-4.5"
 end
 
 return {

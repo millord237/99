@@ -48,12 +48,13 @@ end
 --- @return _99.StateProps
 local function create_99_state()
   return {
-    model = "anthropic/claude-sonnet-4-5",
+    model = "opencode/claude-sonnet-4-5",
     md_files = {},
     prompts = require("99.prompt-settings"),
     ai_stdout_rows = 3,
     languages = { "lua", "go", "java", "elixir", "cpp", "ruby" },
     display_errors = false,
+    provider_override = nil,
     __active_requests = {},
     __view_log_idx = 1,
   }
@@ -344,6 +345,11 @@ function _99.setup(opts)
   if opts.model then
     assert(type(opts.model) == "string", "opts.model is not a string")
     _99_state.model = opts.model
+  else
+    local provider = opts.provider or Providers.OpenCodeProvider
+    if provider._get_default_model then
+      _99_state.model = provider._get_default_model()
+    end
   end
 
   if opts.md_files then

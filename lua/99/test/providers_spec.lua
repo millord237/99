@@ -13,6 +13,13 @@ describe("providers", function()
         cmd
       )
     end)
+
+    it("has correct default model", function()
+      eq(
+        "opencode/claude-sonnet-4-5",
+        Providers.OpenCodeProvider._get_default_model()
+      )
+    end)
   end)
 
   describe("ClaudeCodeProvider", function()
@@ -29,6 +36,10 @@ describe("providers", function()
         "test query",
       }, cmd)
     end)
+
+    it("has correct default model", function()
+      eq("claude-sonnet-4-5", Providers.ClaudeCodeProvider._get_default_model())
+    end)
   end)
 
   describe("CursorAgentProvider", function()
@@ -44,6 +55,10 @@ describe("providers", function()
         "test query",
       }, cmd)
     end)
+
+    it("has correct default model", function()
+      eq("sonnet-4.5", Providers.CursorAgentProvider._get_default_model())
+    end)
   end)
 
   describe("provider integration", function()
@@ -53,6 +68,50 @@ describe("providers", function()
       _99.setup({ provider = Providers.ClaudeCodeProvider })
       local state = _99.__get_state()
       eq(Providers.ClaudeCodeProvider, state.provider_override)
+    end)
+
+    it(
+      "uses OpenCodeProvider default model when no provider or model specified",
+      function()
+        local _99 = require("99")
+
+        _99.setup({})
+        local state = _99.__get_state()
+        eq("opencode/claude-sonnet-4-5", state.model)
+      end
+    )
+
+    it(
+      "uses ClaudeCodeProvider default model when provider specified but no model",
+      function()
+        local _99 = require("99")
+
+        _99.setup({ provider = Providers.ClaudeCodeProvider })
+        local state = _99.__get_state()
+        eq("claude-sonnet-4-5", state.model)
+      end
+    )
+
+    it(
+      "uses CursorAgentProvider default model when provider specified but no model",
+      function()
+        local _99 = require("99")
+
+        _99.setup({ provider = Providers.CursorAgentProvider })
+        local state = _99.__get_state()
+        eq("sonnet-4.5", state.model)
+      end
+    )
+
+    it("uses custom model when both provider and model specified", function()
+      local _99 = require("99")
+
+      _99.setup({
+        provider = Providers.ClaudeCodeProvider,
+        model = "custom-model",
+      })
+      local state = _99.__get_state()
+      eq("custom-model", state.model)
     end)
   end)
 
