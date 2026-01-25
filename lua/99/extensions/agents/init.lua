@@ -1,4 +1,5 @@
 local helpers = require("99.extensions.agents.helpers")
+local Logger = require("99.logger.logger")
 local M = {}
 
 --- @class _99.Agents.Rule
@@ -117,23 +118,31 @@ end
 
 ---@param rules _99.Agents.Rules
 ---@param prompt string
----@return string[]
----@return _99.Agents.Rules[]
+---@return {names: string[], rules: _99.Agents.Rules[]}
 function M.by_name(rules, prompt)
-  --- @type _99.Agents.Rule[]
+  --- @type table<string, boolean>
+  local found = {}
+
+  --- @type string[]
   local names = {}
+
+  --- @type _99.Agents.Rule[]
   local out_rules = {}
-  for word in prompt:gmatch("@%S+") do
+  for word in prompt:gmatch("%S+") do
     local rules_by_name = rules.by_name[word]
-    if rules_by_name then
+    if rules_by_name and found[word] == nil then
       for _, r in ipairs(rules_by_name) do
         table.insert(out_rules, r)
       end
       table.insert(names, word)
+      found[word] = true
     end
   end
 
-  return out_rules, names
+  return {
+    names = names,
+    rules = out_rules,
+  }
 end
 
 return M

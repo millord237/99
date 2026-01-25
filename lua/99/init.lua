@@ -267,9 +267,9 @@ local function wrap_window_capture(cb, context, opts)
     if not ok then
       return cb(false)
     end
-    local rules = Agents.by_name(_99_state.rules, response)
+    local rules_and_names = Agents.by_name(_99_state.rules, response)
     opts.additional_rules = opts.additional_rules or {}
-    for _, r in ipairs(rules) do
+    for _, r in ipairs(rules_and_names.rules) do
       table.insert(opts.additional_rules, r)
     end
     opts.additional_prompt = response
