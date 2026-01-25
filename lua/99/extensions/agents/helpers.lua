@@ -13,39 +13,23 @@ local function normalize_path(path)
   return cwd
 end
 
---- The skills for most people look like the following
---- /path/to/dir/<name>/SKILL.md
----
---- this will parse those out and return the Agents.Rule for each
---- The name of the agent rule will be the matching folder
---- @param dir string
---- @return _99.Agents.Rule[]
-function M.ls_skill_pattern(dir)
-  local current_dir = normalize_path(dir)
-  local glob = vim.fs.joinpath(current_dir, "/*/SKILL.md")
-  local files = vim.fn.glob(glob, false, true)
-  local rules = {}
-  for _, file in ipairs(files) do
-    local folder_name = vim.fn.fnamemodify(file, ":h:t")
-    table.insert(rules, {
-      name = folder_name,
-      path = file,
-    })
-  end
-
-  return rules
-end
-
 --- @param dir string
 --- @return _99.Agents.Rule[]
 function M.ls(dir)
   local current_dir = normalize_path(dir)
-  local glob = vim.fs.joinpath(current_dir, "/*.{mdc,md}")
-  local files = vim.fn.glob(glob, false, true)
+  local files = {}
+
+  local direct_skill = vim.fs.joinpath(current_dir, "SKILL.md")
+  if vim.fn.filereadable(direct_skill) == 1 then
+    table.insert(files, direct_skill)
+  else
+    local glob = vim.fs.joinpath(current_dir, "*/SKILL.md")
+    files = vim.fn.glob(glob, false, true)
+  end
   local rules = {}
 
   for _, file in ipairs(files) do
-    local filename = vim.fn.fnamemodify(file, ":t:r")
+    local filename = vim.fn.fnamemodify(file, ":h:t")
     table.insert(rules, {
       name = filename,
       path = file,

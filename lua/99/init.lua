@@ -90,7 +90,6 @@ end
 --- @class _99.Completion
 --- @field source "cmp" | nil
 --- @field custom_rules string[]
---- @field cursor_rules string | nil defaults to .cursor/rules
 
 --- @class _99.Options
 --- @field logger _99.Logger.Options?
@@ -336,6 +335,7 @@ function _99.fill_in_function_prompt(opts)
     on_load = function()
       Extensions.setup_buffer(_99_state)
     end,
+    rules = _99_state.rules,
   })
 end
 
@@ -361,6 +361,7 @@ function _99.visual_prompt(opts)
     on_load = function()
       Extensions.setup_buffer(_99_state)
     end,
+    rules = _99_state.rules,
   })
 end
 
@@ -453,14 +454,14 @@ function _99.setup(opts)
       source = nil,
       custom_rules = {},
     }
-  _99_state.completion.cursor_rules = _99_state.completion.cursor_rules
-    or ".cursor/rules/"
   _99_state.completion.custom_rules = _99_state.completion.custom_rules or {}
   _99_state.auto_add_skills = opts.auto_add_skills or false
 
   local crules = _99_state.completion.custom_rules
   for i, rule in ipairs(crules) do
-    crules[i] = expand(rule)
+    local str = expand(rule)
+    assert(type(str) == "string", "rule path must be a string")
+    crules[i] = str
   end
 
   vim.api.nvim_create_autocmd("VimLeavePre", {

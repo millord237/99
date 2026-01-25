@@ -7,7 +7,6 @@ local M = {}
 --- @field path string
 
 --- @class _99.Agents.Rules
---- @field cursor _99.Agents.Rule[]
 --- @field custom _99.Agents.Rule[]
 --- @field by_name table<string, _99.Agents.Rule[]>
 
@@ -28,25 +27,18 @@ end
 ---@param _99 _99.State
 ---@return _99.Agents.Rules
 function M.rules(_99)
-  local cursor = helpers.ls(_99.completion.cursor_rules)
   local custom = {}
   for _, path in ipairs(_99.completion.custom_rules or {}) do
     local custom_rules = helpers.ls(path)
-    local standard_rules = helpers.ls_skill_pattern(path)
-    for _, r in ipairs(standard_rules) do
+    for _, r in ipairs(custom_rules) do
       table.insert(custom, r)
-    end
-    for _, c in ipairs(custom_rules) do
-      table.insert(custom, c)
     end
   end
 
   local by_name = {}
-  add_rule_by_name(by_name, cursor)
   add_rule_by_name(by_name, custom)
   return {
     by_name = by_name,
-    cursor = cursor,
     custom = custom,
   }
 end
@@ -55,9 +47,6 @@ end
 --- @return _99.Agents.Rule[]
 function M.rules_to_items(rules)
   local items = {}
-  for _, rule in ipairs(rules.cursor or {}) do
-    table.insert(items, rule)
-  end
   for _, rule in ipairs(rules.custom or {}) do
     table.insert(items, rule)
   end
@@ -68,11 +57,6 @@ end
 ---@param path string
 ---@return _99.Agents.Rule | nil
 function M.get_rule_by_path(rules, path)
-  for _, rule in ipairs(rules.cursor or {}) do
-    if rule.path == path then
-      return rule
-    end
-  end
   for _, rule in ipairs(rules.custom or {}) do
     if rule.path == path then
       return rule
@@ -85,11 +69,6 @@ end
 ---@param token string
 ---@return boolean
 function M.is_rule(rules, token)
-  for _, rule in ipairs(rules.cursor or {}) do
-    if rule.path == token then
-      return true
-    end
-  end
   for _, rule in ipairs(rules.custom or {}) do
     if rule.path == token then
       return true

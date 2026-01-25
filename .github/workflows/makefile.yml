@@ -35,6 +35,10 @@ jobs:
       run: |
         sudo luarocks install luacheck
 
+    - name: Install lua-language-server
+      run: |
+        sudo apt-get install -y lua-language-server
+
     - name: Install stylua
       run: |
         wget -qO- https://github.com/JohnnyMorganz/StyLua/releases/latest/download/stylua-linux-x86_64.zip -O stylua.zip
