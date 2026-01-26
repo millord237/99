@@ -30,7 +30,12 @@ end
 local function process_opts(opts)
   opts = opts or {}
   for i, rule in ipairs(opts.additional_rules or {}) do
-    opts.additional_rules[i] = expand(rule)
+    local r = expand(rule)
+    assert(
+      type(r) ~= "string",
+      "broken configuration.  additional_rules must never be a string"
+    )
+    opts.additional_rules[i] = r
   end
   return opts
 end
@@ -57,6 +62,7 @@ end
 --- @field ai_stdout_rows number
 --- @field languages string[]
 --- @field display_errors boolean
+--- @field auto_add_skills boolean
 --- @field provider_override _99.Provider?
 --- @field __active_requests table<number, _99.ActiveRequest>
 --- @field __view_log_idx number
@@ -73,6 +79,7 @@ local function create_99_state()
     languages = { "lua", "go", "java", "elixir", "cpp", "ruby" },
     display_errors = false,
     provider_override = nil,
+    auto_add_skills = false,
     __active_requests = {},
     __view_log_idx = 1,
     __request_history = {},
@@ -92,6 +99,7 @@ end
 --- @field provider _99.Provider?
 --- @field debug_log_prefix string?
 --- @field display_errors? boolean
+--- @field auto_add_skills? boolean
 --- @field completion _99.Completion?
 
 --- unanswered question -- will i need to queue messages one at a time or
@@ -105,6 +113,7 @@ end
 --- @field languages string[]
 --- @field display_errors boolean
 --- @field provider_override _99.Provider?
+--- @field auto_add_skills boolean
 --- @field rules _99.Agents.Rules
 --- @field __active_requests table<number, _99.ActiveRequest>
 --- @field __view_log_idx number
@@ -246,6 +255,28 @@ local function set_selection_marks()
   )
 end
 
+--- @param cb fun(ok: boolean, o: _99.ops.Opts?): nil
+--- @param context _99.RequestContext
+--- @param opts _99.ops.Opts
+--- @return fun(ok: boolean, response: string): nil
+local function wrap_window_capture(cb, context, opts)
+  --- @param ok boolean
+  --- @param response string
+  return function(ok, response)
+    context.logger:debug("capture_prompt", "success", ok, "response", response)
+    if not ok then
+      return cb(false)
+    end
+    local rules = Agents.by_name(_99_state.rules, response)
+    opts.additional_rules = opts.additional_rules or {}
+    for _, r in ipairs(rules) do
+      table.insert(opts.additional_rules, r)
+    end
+    opts.additional_prompt = response
+    cb(true, opts)
+  end
+end
+
 --- @param operation_name string
 --- @return _99.RequestContext
 local function get_context(operation_name)
@@ -264,11 +295,17 @@ function _99.info()
     info,
     string.format("Previous Requests: %d", _99_state:previous_request_count())
   )
-  table.insert(info, string.format("cursor rules(%d):", #(_99_state.rules.cursor or {})))
+  table.insert(
+    info,
+    string.format("cursor rules(%d):", #(_99_state.rules.cursor or {}))
+  )
   for _, rule in ipairs(_99_state.rules.cursor or {}) do
     table.insert(info, string.format("* %s", rule.name))
   end
-  table.insert(info, string.format("custom rules(%d):", #(_99_state.rules.custom or {})))
+  table.insert(
+    info,
+    string.format("custom rules(%d):", #(_99_state.rules.custom or {}))
+  )
   for _, rule in ipairs(_99_state.rules.custom or {}) do
     table.insert(info, string.format("* %s", rule.name))
   end
@@ -289,19 +326,13 @@ function _99.fill_in_function_prompt(opts)
 
   context.logger:debug("start")
   Window.capture_input({
-    cb = function(success, response)
-      context.logger:debug(
-        "capture_prompt",
-        "success",
-        success,
-        "response",
-        response
-      )
-      if success then
-        opts.additional_prompt = response
-        ops.fill_in_function(context, opts)
+    cb = wrap_window_capture(function(ok, o)
+      if not ok then
+        return
       end
-    end,
+      assert(o ~= nil, "if ok, then opts must exist")
+      ops.fill_in_function(context, o)
+    end, context, opts),
     on_load = function()
       Extensions.setup_buffer(_99_state)
     end,
@@ -320,19 +351,13 @@ function _99.visual_prompt(opts)
   local context = get_context("over-range-with-prompt")
   context.logger:debug("start")
   Window.capture_input({
-    cb = function(success, response)
-      context.logger:debug(
-        "capture_prompt",
-        "success",
-        success,
-        "response",
-        response
-      )
-      if success then
-        opts.additional_prompt = response
-        _99.visual(context, opts)
+    cb = wrap_window_capture(function(ok, o)
+      if not ok then
+        return
       end
-    end,
+      assert(o ~= nil, "if ok, then opts must exist")
+      _99.visual(context, o)
+    end, context, opts),
     on_load = function()
       Extensions.setup_buffer(_99_state)
     end,
@@ -431,6 +456,7 @@ function _99.setup(opts)
   _99_state.completion.cursor_rules = _99_state.completion.cursor_rules
     or ".cursor/rules/"
   _99_state.completion.custom_rules = _99_state.completion.custom_rules or {}
+  _99_state.auto_add_skills = opts.auto_add_skills or false
 
   local crules = _99_state.completion.custom_rules
   for i, rule in ipairs(crules) do

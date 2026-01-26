@@ -8,9 +8,21 @@ local M = {}
 --- @class _99.Agents.Rules
 --- @field cursor _99.Agents.Rule[]
 --- @field custom _99.Agents.Rule[]
+--- @field by_name table<string, _99.Agents.Rule[]>
 
 --- @class _99.Agents.Agent
 --- @field rules _99.Agents.Rules
+
+--- @param map table<string, _99.Agents.Rule[]>
+--- @param rules _99.Agents.Rule[]
+local function add_rule_by_name(map, rules)
+  for _, r in ipairs(rules) do
+    if map[r.name] == nil then
+      map[r.name] = {}
+    end
+    table.insert(map[r.name], r)
+  end
+end
 
 ---@param _99 _99.State
 ---@return _99.Agents.Rules
@@ -18,12 +30,21 @@ function M.rules(_99)
   local cursor = helpers.ls(_99.completion.cursor_rules)
   local custom = {}
   for _, path in ipairs(_99.completion.custom_rules or {}) do
-    local custom_rule = helpers.ls(path)
-    for _, c in ipairs(custom_rule) do
+    local custom_rules = helpers.ls(path)
+    local standard_rules = helpers.ls_skill_pattern(path)
+    for _, r in ipairs(standard_rules) do
+      table.insert(custom, r)
+    end
+    for _, c in ipairs(custom_rules) do
       table.insert(custom, c)
     end
   end
+
+  local by_name = {}
+  add_rule_by_name(by_name, cursor)
+  add_rule_by_name(by_name, custom)
   return {
+    by_name = by_name,
     cursor = cursor,
     custom = custom,
   }
@@ -92,6 +113,27 @@ function M.find_rules(rules, haystack)
   end
 
   return out
+end
+
+---@param rules _99.Agents.Rules
+---@param prompt string
+---@return string[]
+---@return _99.Agents.Rules[]
+function M.by_name(rules, prompt)
+  --- @type _99.Agents.Rule[]
+  local names = {}
+  local out_rules = {}
+  for word in prompt:gmatch("@%S+") do
+    local rules_by_name = rules.by_name[word]
+    if rules_by_name then
+      for _, r in ipairs(rules_by_name) do
+        table.insert(out_rules, r)
+      end
+      table.insert(names, word)
+    end
+  end
+
+  return out_rules, names
 end
 
 return M

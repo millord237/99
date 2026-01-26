@@ -25,8 +25,6 @@ function M.ls_skill_pattern(dir)
   local glob = vim.fs.joinpath(current_dir, "/*/SKILL.md")
   local files = vim.fn.glob(glob, false, true)
   local rules = {}
-
-  print("Globbing", vim.inspect(glob))
   for _, file in ipairs(files) do
     local folder_name = vim.fn.fnamemodify(file, ":h:t")
     table.insert(rules, {
@@ -37,8 +35,6 @@ function M.ls_skill_pattern(dir)
 
   return rules
 end
-
-print(vim.inspect(M.ls_skill_pattern("~/personal/skills/skills")))
 
 --- @param dir string
 --- @return _99.Agents.Rule[]
