@@ -8,6 +8,7 @@ local RequestContext = require("99.request-context")
 local Range = require("99.geo").Range
 local Extensions = require("99.extensions")
 local Agents = require("99.extensions.agents")
+local Providers = require("99.providers")
 
 ---@param path_or_rule string | _99.Agents.Rule
 ---@return _99.Agents.Rule | string
@@ -53,6 +54,7 @@ local function create_99_state()
     ai_stdout_rows = 3,
     languages = { "lua", "go", "java", "elixir", "cpp", "ruby" },
     display_errors = false,
+    provider_override = nil,
     __active_requests = {},
     __view_log_idx = 1,
   }
@@ -343,6 +345,11 @@ function _99.setup(opts)
   if opts.model then
     assert(type(opts.model) == "string", "opts.model is not a string")
     _99_state.model = opts.model
+  else
+    local provider = opts.provider or Providers.OpenCodeProvider
+    if provider._get_default_model then
+      _99_state.model = provider._get_default_model()
+    end
   end
 
   if opts.md_files then
@@ -353,7 +360,6 @@ function _99.setup(opts)
   end
 
   _99_state.display_errors = opts.display_errors or false
-
   _99_state:refresh_rules()
   Languages.initialize(_99_state)
   Extensions.init(_99_state)
@@ -390,6 +396,11 @@ function _99.__debug()
     path = nil,
     level = Level.DEBUG,
   })
+end
+
+-- Export providers for user access
+for name, provider in pairs(Providers) do
+  _99[name] = provider
 end
 
 return _99
