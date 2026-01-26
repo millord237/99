@@ -18,9 +18,9 @@ local function once(fn)
   end
 end
 
---- @class BaseProvider
---- @field _build_command fun(self: BaseProvider, query: string, request: _99.Request): string[]
---- @field _get_provider_name fun(self: BaseProvider): string
+--- @class _99.Providers.BaseProvider
+--- @field _build_command fun(self: _99.Providers.BaseProvider, query: string, request: _99.Request): string[]
+--- @field _get_provider_name fun(self: _99.Providers.BaseProvider): string
 local BaseProvider = {}
 
 --- @param request _99.Request
@@ -63,7 +63,6 @@ function BaseProvider:make_request(query, request, observer)
   local command = self:_build_command(query, request)
   logger:debug("make_request", "command", command)
 
-  local response_data = {}
   local proc = vim.system(
     command,
     {
@@ -78,7 +77,6 @@ function BaseProvider:make_request(query, request, observer)
           logger:debug("stdout#error", "err", err)
         end
         if not err and data then
-          table.insert(response_data, data)
           observer.on_stdout(data)
         end
       end),
@@ -130,7 +128,7 @@ function BaseProvider:make_request(query, request, observer)
   request:_set_process(proc)
 end
 
---- @class OpenCodeProvider : BaseProvider
+--- @class OpenCodeProvider : _99.Providers.BaseProvider
 local OpenCodeProvider = setmetatable({}, { __index = BaseProvider })
 
 --- @param query string
@@ -150,7 +148,7 @@ function OpenCodeProvider._get_default_model()
   return "opencode/claude-sonnet-4-5"
 end
 
---- @class ClaudeCodeProvider : BaseProvider
+--- @class ClaudeCodeProvider : _99.Providers.BaseProvider
 local ClaudeCodeProvider = setmetatable({}, { __index = BaseProvider })
 
 --- @param query string
@@ -177,7 +175,7 @@ function ClaudeCodeProvider._get_default_model()
   return "claude-sonnet-4-5"
 end
 
---- @class CursorAgentProvider : BaseProvider
+--- @class CursorAgentProvider : _99.Providers.BaseProvider
 local CursorAgentProvider = setmetatable({}, { __index = BaseProvider })
 
 --- @param query string
