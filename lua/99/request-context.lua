@@ -14,6 +14,7 @@ local random_file = utils.random_file
 --- @field logger _99.Logger
 --- @field xid number
 --- @field range _99.Range?
+--- @field operation string?
 --- @field _99 _99.State
 local RequestContext = {}
 RequestContext.__index = RequestContext
@@ -121,6 +122,19 @@ end
 --- @return string[]
 function RequestContext:content()
   return self.ai_context
+end
+
+--- @param prompt string
+function RequestContext:save_prompt(prompt)
+  local prompt_file = self.tmp_file .. "-prompt"
+  local file = io.open(prompt_file, "w")
+  if file then
+    file:write(prompt)
+    file:close()
+    self.logger:debug("saved prompt to file", "path", prompt_file)
+  else
+    self.logger:error("failed to save prompt", "path", prompt_file)
+  end
 end
 
 --- @return self

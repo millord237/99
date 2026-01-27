@@ -1,4 +1,5 @@
 local helpers = require("99.extensions.agents.helpers")
+local Logger = require("99.logger.logger")
 local M = {}
 
 --- @class _99.Agents.Rule
@@ -6,25 +7,38 @@ local M = {}
 --- @field path string
 
 --- @class _99.Agents.Rules
---- @field cursor _99.Agents.Rule[]
 --- @field custom _99.Agents.Rule[]
+--- @field by_name table<string, _99.Agents.Rule[]>
 
 --- @class _99.Agents.Agent
 --- @field rules _99.Agents.Rules
 
+--- @param map table<string, _99.Agents.Rule[]>
+--- @param rules _99.Agents.Rule[]
+local function add_rule_by_name(map, rules)
+  for _, r in ipairs(rules) do
+    if map[r.name] == nil then
+      map[r.name] = {}
+    end
+    table.insert(map[r.name], r)
+  end
+end
+
 ---@param _99 _99.State
 ---@return _99.Agents.Rules
 function M.rules(_99)
-  local cursor = helpers.ls(_99.completion.cursor_rules)
   local custom = {}
   for _, path in ipairs(_99.completion.custom_rules or {}) do
-    local custom_rule = helpers.ls(path)
-    for _, c in ipairs(custom_rule) do
-      table.insert(custom, c)
+    local custom_rules = helpers.ls(path)
+    for _, r in ipairs(custom_rules) do
+      table.insert(custom, r)
     end
   end
+
+  local by_name = {}
+  add_rule_by_name(by_name, custom)
   return {
-    cursor = cursor,
+    by_name = by_name,
     custom = custom,
   }
 end
@@ -33,9 +47,6 @@ end
 --- @return _99.Agents.Rule[]
 function M.rules_to_items(rules)
   local items = {}
-  for _, rule in ipairs(rules.cursor or {}) do
-    table.insert(items, rule)
-  end
   for _, rule in ipairs(rules.custom or {}) do
     table.insert(items, rule)
   end
@@ -46,11 +57,6 @@ end
 ---@param path string
 ---@return _99.Agents.Rule | nil
 function M.get_rule_by_path(rules, path)
-  for _, rule in ipairs(rules.cursor or {}) do
-    if rule.path == path then
-      return rule
-    end
-  end
   for _, rule in ipairs(rules.custom or {}) do
     if rule.path == path then
       return rule
@@ -63,11 +69,6 @@ end
 ---@param token string
 ---@return boolean
 function M.is_rule(rules, token)
-  for _, rule in ipairs(rules.cursor or {}) do
-    if rule.path == token then
-      return true
-    end
-  end
   for _, rule in ipairs(rules.custom or {}) do
     if rule.path == token then
       return true
@@ -92,6 +93,35 @@ function M.find_rules(rules, haystack)
   end
 
   return out
+end
+
+---@param rules _99.Agents.Rules
+---@param prompt string
+---@return {names: string[], rules: _99.Agents.Rules[]}
+function M.by_name(rules, prompt)
+  --- @type table<string, boolean>
+  local found = {}
+
+  --- @type string[]
+  local names = {}
+
+  --- @type _99.Agents.Rule[]
+  local out_rules = {}
+  for word in prompt:gmatch("%S+") do
+    local rules_by_name = rules.by_name[word]
+    if rules_by_name and found[word] == nil then
+      for _, r in ipairs(rules_by_name) do
+        table.insert(out_rules, r)
+      end
+      table.insert(names, word)
+      found[word] = true
+    end
+  end
+
+  return {
+    names = names,
+    rules = out_rules,
+  }
 end
 
 return M

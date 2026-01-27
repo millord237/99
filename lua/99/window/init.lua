@@ -1,3 +1,5 @@
+local Agents = require("99.extensions.agents")
+
 --- @class _99.window.Module
 --- @field active_windows _99.window.Window[]
 local M = {
@@ -68,10 +70,12 @@ local function create_window_full_screen()
   }
 end
 
---- @param config _99.window.Config
+--- @param win _99.window.Window
 ---@param offset_bottom number | nil
 --- @return _99.window.Config
-local function create_window_inside(config, offset_bottom)
+---@diagnostic disable-next-line
+local function create_window_inside(win, offset_bottom)
+  local config = win.config
   offset_bottom = offset_bottom or 0
   return {
     width = config.width - 2,
@@ -96,6 +100,7 @@ local function create_centered_window()
 end
 
 --- @param config _99.window.Config
+---@diagnostic disable-next-line: undefined-doc-name
 --- @param win_config vim.api.keyset.win_config
 --- @return _99.window.Window
 local function create_floating_window(config, win_config)
@@ -108,9 +113,12 @@ local function create_floating_window(config, win_config)
     col = config.col or 0,
     anchor = config.anchor,
     style = "minimal",
+    ---@diagnostic disable-next-line: undefined-field
     border = win_config.border,
+    ---@diagnostic disable-next-line: undefined-field
     title = win_config.title,
     title_pos = "center",
+    ---@diagnostic disable-next-line: undefined-field
     zindex = win_config.zindex,
   })
   local window = {
@@ -257,9 +265,76 @@ local function set_defaul_win_options(win, name)
   vim.bo[win.buf_id].swapfile = false
 end
 
+--- @param win _99.window.Window
+--- @param rules _99.Agents.Rules
+--- @param group any
+local function highlight_rules_found(win, rules, group)
+  local rule_nsid = vim.api.nvim_create_namespace("99.window.rules")
+  local function check_and_highlight_rules()
+    if not nvim_win_is_valid(win.win_id) then
+      return
+    end
+
+    vim.api.nvim_buf_clear_namespace(win.buf_id, rule_nsid, 0, -1)
+
+    local lines = vim.api.nvim_buf_get_lines(win.buf_id, 0, -1, false)
+    local buffer_text = table.concat(lines, "\n")
+    local rules_and_names = Agents.by_name(rules, buffer_text)
+    local found_rules = rules_and_names.rules
+    if not found_rules or vim.tbl_isempty(found_rules) then
+      return
+    end
+
+    local rule_names = rules_and_names.names
+    for line_num, line in ipairs(lines) do
+      for _, rule_name in ipairs(rule_names) do
+        local start_col = 0
+        while true do
+          local found_start, found_end =
+            string.find(line, rule_name, start_col + 1, true)
+          if not found_start then
+            break
+          end
+
+          -- Highlight the matched rule
+          vim.api.nvim_buf_set_extmark(
+            win.buf_id,
+            rule_nsid,
+            line_num - 1,
+            found_start - 1,
+            {
+              end_col = found_end,
+              hl_group = "Search",
+            }
+          )
+
+          start_col = found_end --[[ @as number ]]
+        end
+      end
+    end
+  end
+
+  vim.api.nvim_create_autocmd("InsertLeave", {
+    group = group,
+    buffer = win.buf_id,
+    callback = function()
+      check_and_highlight_rules()
+    end,
+  })
+
+  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+    group = group,
+    buffer = win.buf_id,
+    callback = function()
+      check_and_highlight_rules()
+    end,
+  })
+end
+
 --- @class _99.window.CaptureInputOpts
 --- @field cb fun(success: boolean, result: string): nil
 --- @field on_load? fun(): nil
+--- @field rules _99.Agents.Rules
 
 --- @param opts _99.window.CaptureInputOpts
 function M.capture_input(opts)
@@ -271,7 +346,6 @@ function M.capture_input(opts)
     title = " 99 Prompt ",
     border = "rounded",
   })
-
   set_defaul_win_options(win, "99-prompt")
   vim.api.nvim_set_current_win(win.win_id)
 
@@ -280,6 +354,7 @@ function M.capture_input(opts)
     { clear = true }
   )
 
+  highlight_rules_found(win, opts.rules, group)
   vim.api.nvim_create_autocmd("BufLeave", {
     group = group,
     buffer = win.buf_id,

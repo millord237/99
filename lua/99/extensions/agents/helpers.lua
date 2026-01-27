@@ -6,6 +6,9 @@ local function normalize_path(path)
   if path:sub(1, 1) == "/" then
     return path
   end
+  if path:sub(1, 1) == "~" then
+    return vim.fn.expand(path)
+  end
   local cwd = vim.fs.joinpath(vim.uv.cwd(), path)
   return cwd
 end
@@ -14,12 +17,19 @@ end
 --- @return _99.Agents.Rule[]
 function M.ls(dir)
   local current_dir = normalize_path(dir)
-  local glob = vim.fs.joinpath(current_dir, "/*.{mdc,md}")
-  local files = vim.fn.glob(glob, false, true)
+  local files = {}
+
+  local direct_skill = vim.fs.joinpath(current_dir, "SKILL.md")
+  if vim.fn.filereadable(direct_skill) == 1 then
+    table.insert(files, direct_skill)
+  else
+    local glob = vim.fs.joinpath(current_dir, "*/SKILL.md")
+    files = vim.fn.glob(glob, false, true)
+  end
   local rules = {}
 
   for _, file in ipairs(files) do
-    local filename = vim.fn.fnamemodify(file, ":t:r")
+    local filename = vim.fn.fnamemodify(file, ":h:t")
     table.insert(rules, {
       name = filename,
       path = file,
