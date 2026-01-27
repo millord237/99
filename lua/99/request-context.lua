@@ -124,6 +124,19 @@ function RequestContext:content()
   return self.ai_context
 end
 
+--- @param prompt string
+function RequestContext:save_prompt(prompt)
+  local prompt_file = self.tmp_file .. "-prompt"
+  local file = io.open(prompt_file, "w")
+  if file then
+    file:write(prompt)
+    file:close()
+    self.logger:debug("saved prompt to file", "path", prompt_file)
+  else
+    self.logger:error("failed to save prompt", "path", prompt_file)
+  end
+end
+
 --- @return self
 function RequestContext:finalize()
   self:_read_md_files()

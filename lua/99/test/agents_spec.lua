@@ -2,12 +2,6 @@
 local Agents = require("99.extensions.agents")
 local eq = assert.are.same
 
-local function c(t, item)
-  return vim.tbl_contains(t, function(v)
-    return vim.deep_equal(v, item)
-  end, { predicate = true })
-end
-
 local function a(p)
   return vim.fs.joinpath(vim.uv.cwd(), p)
 end

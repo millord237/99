@@ -75,9 +75,10 @@ function Request:start(observer)
     self:add_prompt_content(content)
   end
 
-  local query = table.concat(self._content, "\n")
-  self.logger:debug("start", "query", query)
-  self.provider:make_request(query, self, observer)
+  local prompt = table.concat(self._content, "\n")
+  self.context:save_prompt(prompt)
+  self.logger:debug("start", "prompt", prompt)
+  self.provider:make_request(prompt, self, observer)
 end
 
 return Request
