@@ -1,6 +1,16 @@
+# IF YOU ARE HERE FROM THE YT VIDEO
+a few things changed.  completion is a bit different for skills.  i now require `@` to begin with
+... ill try to update as it happens ...
+
+### The Great Twitch Discussion
+I will conduct a stream on Jan 30 at 8am The Lords Time (Montana Time/Mountain Time (same thing))
+we will do an extensive deep dive on 99 and what we think is good and bad.
+
 ## The AI Agent That Neovim Deserves
 This is an example repo where i want to test what i think the ideal AI workflow
 is for people who dont have "skill issues."  This is meant to streamline the requests to AI and limit them it restricted areas.  For more general requests, please just use opencode.  Dont use neovim.
+
+
 
 ## Warning
 1. Prompts are temporary right now. they could be massively improved
@@ -131,10 +141,6 @@ function _99.next_request_logs() ... end
 
 ### Dont forget
 If there are secrets or other information in the logs you want to be removed make sure that you delete the `query` printing.  This will likely contain information you may not want to share.
-
-### The Great Twitch Discussion
-I will conduct a stream on Jan 30 at 11am The Lords Time (Montana Time/Mountain Time (same thing))
-we will do an extensive deep dive on 99 and what we think is good and bad.
 
 ### Known usability issues
 * long function definition issues.
