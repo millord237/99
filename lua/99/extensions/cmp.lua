@@ -113,7 +113,6 @@ local function init(_99)
 
   local cmp = require("cmp")
   source = CmpSource.new(_99)
-  print("setting rules", #source.items)
   cmp.register_source(SOURCE, source)
 end
 
